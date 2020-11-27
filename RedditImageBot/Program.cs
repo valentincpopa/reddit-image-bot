@@ -1,7 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using RedditImageBot.Services;
-using System;
+using NLog.Extensions.Logging;
 
 namespace RedditImageBot
 {
@@ -16,7 +17,13 @@ namespace RedditImageBot
             Host.CreateDefaultBuilder(args)
             .ConfigureServices((hostContext, services) =>
             {
-                services.AddHostedService<HostedService>();                
+                services.AddHostedService<HostedService>();
+                services.ConfigureServices(hostContext.Configuration);
+            })
+            .ConfigureLogging(logging =>
+            {
+                logging.ClearProviders();
+                logging.AddNLog();
             });
     }
 }
