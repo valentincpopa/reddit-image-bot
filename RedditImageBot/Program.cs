@@ -3,6 +3,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RedditImageBot.Services;
 using NLog.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
+using AutoMapper;
 
 namespace RedditImageBot
 {
@@ -19,6 +21,7 @@ namespace RedditImageBot
             {
                 services.AddHostedService<HostedService>();
                 services.ConfigureServices(hostContext.Configuration);
+                services.AddAutoMapper(typeof(Program).Assembly);
             })
             .ConfigureLogging(logging =>
             {

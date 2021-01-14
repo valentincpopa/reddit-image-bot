@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using RedditImageBot.Utilities;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ namespace RedditImageBot.Services
             services.AddHttpClient();
             services.Configure<RedditConfiguration>(configuration.GetSection("RedditConfiguration"));
             services.AddSingleton<RedditWebAgent>();
+            services.AddScoped<IRedditService, RedditService>();
         }
     }
 }
