@@ -5,6 +5,7 @@ using RedditImageBot.Services;
 using NLog.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using AutoMapper;
+using RedditImageBot.Models;
 
 namespace RedditImageBot
 {

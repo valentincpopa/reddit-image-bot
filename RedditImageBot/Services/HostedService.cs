@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using RedditImageBot.Utilities;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -15,19 +16,19 @@ namespace RedditImageBot.Services
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<HostedService> _logger;
-        private readonly IRedditService _redditService;
+        private readonly IBotService _botService;
 
-        public HostedService(IConfiguration configuration, ILogger<HostedService> logger, IRedditService redditService)
+        public HostedService(IConfiguration configuration, ILogger<HostedService> logger, IBotService botService)
         {
             _configuration = configuration;
             _logger = logger;
-            _redditService = redditService;
+            _botService = botService;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation($"StartAsync has been called with environment: {_configuration["DOTNET_ENV"]}");
-            await _redditService.InitializeAsync();
+            await _botService.InitializeAsync();
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

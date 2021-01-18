@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace RedditImageBot.Services
 {
-    public interface IImgurService
+    public interface IBotService
     {
-        Task<string> UploadImageAsync(MemoryStream fileStream);
+        Task InitializeAsync();
     }
 }

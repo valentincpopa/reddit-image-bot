@@ -10,6 +10,7 @@ namespace RedditImageBot.Services
     {
         Task InitializeAsync();
         Task ReplyAsync(string parent, string text);
+        Task ReadMessageAsync(string fullname);
         Task<IEnumerable<MessageThing>> GetUnreadMessagesAsync();
         Task<PostThing> GetPostAsync(string fullname);
     }

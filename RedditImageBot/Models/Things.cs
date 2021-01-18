@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace RedditImageBot.Models
@@ -24,11 +25,24 @@ namespace RedditImageBot.Models
     }
 
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-    public class MessageThing
+    public class MessageThing : IEquatable<MessageThing>
     {        
         public string Name { get; set; }
         public string Context { get; set; }
         public string ParentId { get; set; }
+
+        public bool Equals([AllowNull] MessageThing other)
+        {
+            return null != other && Name == other.Name;
+        }
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as MessageThing);
+        }
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Name);
+        }
     }    
 
     public class PostThing

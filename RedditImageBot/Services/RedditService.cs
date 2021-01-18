@@ -89,5 +89,19 @@ namespace RedditImageBot.Services
             var posts = root.Data.Children.Select(x => x.Data);
             return posts.FirstOrDefault();
         }
+
+        public async Task ReadMessageAsync(string fullname)
+        {
+            var httpRequestOptions = new HttpRequestOptions
+            {
+                HttpMethod = HttpMethod.Post,
+                IsOauth = true,
+                Uri = $"api/read_message?id={fullname}",
+                Retries = 3,
+                Timeout = 10
+            };
+
+            var response = await _redditWebAgent.SendRequestAsync(httpRequestOptions);
+        }
     }
 }

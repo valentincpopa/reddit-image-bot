@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace RedditImageBot.Services
 {
-    public interface IImgurService
+    public interface IImageService
     {
-        Task<string> UploadImageAsync(MemoryStream fileStream);
+        Task<MemoryStream> GenerateImageAsync(string title, string imageUri);
     }
 }

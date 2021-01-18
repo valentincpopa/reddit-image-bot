@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using RedditImageBot.Database;
 using RedditImageBot.Models;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,8 @@ namespace RedditImageBot.Utilities
     {
         public AutoMapperProfiles()
         {
-            
+            CreateMap<MessageThing, Message>()
+                .ForMember(x => x.Fullname, opt => opt.MapFrom(x => x.Name));
         }
     }
 }
