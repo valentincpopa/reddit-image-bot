@@ -49,6 +49,7 @@ namespace RedditImageBot.Services
 
             await _context.Messages.AddRangeAsync(_mapper.Map<List<Message>>(unprocessedMessages));
             await _context.SaveChangesAsync();
+
             unresolvedMessages = new ConcurrentBag<MessageThing>(unprocessedMessages);
             Parallel.ForEach(unresolvedMessages, async (unresolvedMessage) =>
             {
@@ -61,6 +62,7 @@ namespace RedditImageBot.Services
 
                 var messageToUpdate = await _context.Messages.FirstOrDefaultAsync(x => x.Fullname == unresolvedMessage.Name);
                 messageToUpdate.IsProcessed = true;
+
                 await _context.ProcessedPosts.AddAsync(new ProcessedPost { Fullname = unresolvedMessage.ParentId, ImageUrl = link });
                 await _context.SaveChangesAsync();
             });

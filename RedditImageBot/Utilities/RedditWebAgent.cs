@@ -6,10 +6,12 @@ using RedditImageBot.Models;
 using RedditImageBot.Services;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RedditImageBot.Utilities
@@ -19,20 +21,23 @@ namespace RedditImageBot.Utilities
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly RedditConfiguration _redditConfiguration;
         private string AccessToken;
+        private int Authenticating;
+        private RateLimitData RateLimitData;
 
         public RedditWebAgent(IHttpClientFactory httpClientFactory, IOptions<RedditConfiguration> redditConfigurations, ILogger<RedditWebAgent> logger)
         {
             _httpClientFactory = httpClientFactory;
             _redditConfiguration = redditConfigurations.Value;
+            RateLimitData = new RateLimitData();
         }
 
         public async Task Initialize()
-        {            
+        {
             await Authenticate();
         }
 
         private async Task Authenticate()
-        {            
+        {
             var refreshTokenExists = !string.IsNullOrWhiteSpace(_redditConfiguration.RefreshToken);
             var formContent = GetAuthenticationFormUrlEncodedContent(refreshTokenExists);
 
@@ -52,14 +57,17 @@ namespace RedditImageBot.Utilities
             {
                 var content = await response.Content.ReadAsStringAsync();
                 var authenticationResponse = JsonConvert.DeserializeObject<AuthenticationResponse>(content);
-                if (!refreshTokenExists)
+
+                var lockObj = new object();
+                lock (lockObj)
                 {
-                    _redditConfiguration.RefreshToken = authenticationResponse.RefreshToken;
+                    if (!refreshTokenExists)
+                    {
+                        _redditConfiguration.RefreshToken = authenticationResponse.RefreshToken;
+                    }
+                    AccessToken = authenticationResponse.AccessToken;
                 }
-                //TODO: Synchronization/Authentication information extraction into another class
-                AccessToken = authenticationResponse.AccessToken;               
             }
-            
         }
 
         public async Task<HttpResponseMessage> SendRequestAsync(HttpRequestOptions httpRequestOptions)
@@ -69,22 +77,68 @@ namespace RedditImageBot.Utilities
 
             for (int i = 0; i <= httpRequestOptions.Retries; i++)
             {
+                await CheckAndWaitRateLimit();
+
                 var requestTask = request();
                 response = await requestTask;
 
-                //TODO: Rate limit method
-
                 if (response.IsSuccessStatusCode)
                 {
+                    SetRateLimit(response);
                     return response;
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
-                    await Authenticate();
-                    continue;
+                    var authenticatingInProgress = false;
+                    try
+                    {
+                        authenticatingInProgress = Interlocked.CompareExchange(ref Authenticating, 1, 0) != 0;
+                        if (authenticatingInProgress)
+                        {
+                            await Task.Delay(2000);
+                            continue;
+                        }
+                        await Authenticate();
+                        continue;
+                    }
+                    finally
+                    {
+                        if (authenticatingInProgress) Interlocked.Exchange(ref Authenticating, 0);
+                    }
                 }
-                await Task.Delay(10000);
-            }  
+                await Task.Delay(3000);
+            }
+            return null;
+        }
+
+        private async Task CheckAndWaitRateLimit()
+        {
+            if (RateLimitData.RemainingRequests == 0)
+            {
+                await Task.Delay(RateLimitData.TimeUntilReset.Value * 10);
+            }
+        }
+
+        private void SetRateLimit(HttpResponseMessage response)
+        {
+            var rateLimitData = new RateLimitData
+            {
+                RemainingRequests = GetHeaderValue(response, "x-ratelimit-remaining"),
+                UsedRequests = GetHeaderValue(response, "x-ratelimit-used"),
+                TimeUntilReset = GetHeaderValue(response, "x-ratelimit-reset")
+            };
+
+            Interlocked.Exchange(ref RateLimitData, rateLimitData);
+        }
+
+        private int? GetHeaderValue(HttpResponseMessage response, string headerName)
+        {
+            IEnumerable<string> headerValues;
+            var headerExists = response.Headers.TryGetValues(headerName, out headerValues);
+            if (headerExists)
+            {
+                return (int)Convert.ToDouble(headerValues.First());
+            }
             return null;
         }
 
@@ -143,7 +197,7 @@ namespace RedditImageBot.Utilities
             httpClient.BaseAddress = uriBuilder.Uri;
             httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent",
                 string.Format(_redditConfiguration.UserAgent, Assembly.GetExecutingAssembly().GetName().Version));
-            
+
             switch (httpRequestOptions.HttpMethod.Method)
             {
                 case "GET":
@@ -158,7 +212,7 @@ namespace RedditImageBot.Utilities
                     });
                 default:
                     return new Func<Task<HttpResponseMessage>>(() =>
-                    {                        
+                    {
                         return null;
                     });
             }
@@ -168,7 +222,7 @@ namespace RedditImageBot.Utilities
         {
             httpRequestOptions.HttpMethod = HttpMethod.Post;
             var request = CreateRequest(httpRequestOptions);
-            return request; 
+            return request;
         }
 
         public Func<Task<HttpResponseMessage>> CreateGetRequest(HttpRequestOptions httpRequestOptions)
@@ -176,6 +230,6 @@ namespace RedditImageBot.Utilities
             httpRequestOptions.HttpMethod = HttpMethod.Get;
             var request = CreateRequest(httpRequestOptions);
             return request;
-        }        
+        }
     }
 }

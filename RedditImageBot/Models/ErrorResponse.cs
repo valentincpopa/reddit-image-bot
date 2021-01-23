@@ -7,8 +7,9 @@ using System.Text;
 namespace RedditImageBot.Models
 {
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
-    public class AuthenticationError
+    public class ErrorResponse
     {
         public string Error { get; set; }
+        public string Message { get; set; }
     }
 }

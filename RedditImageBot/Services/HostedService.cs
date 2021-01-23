@@ -27,7 +27,7 @@ namespace RedditImageBot.Services
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation($"StartAsync has been called with environment: {_configuration["DOTNET_ENV"]}");
+            _logger.LogInformation($"StartAsync has been called");
             await _botService.InitializeAsync();
         }
 
