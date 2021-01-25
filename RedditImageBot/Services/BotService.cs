@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RedditImageBot.Database;
 using RedditImageBot.Models;
@@ -16,56 +17,99 @@ namespace RedditImageBot.Services
 {
     public class BotService : IBotService
     {
-        private readonly ApplicationDbContext _context;
         private readonly IRedditService _redditService;
         private readonly IImageService _imageService;
-        private readonly IImgurService _imgurService;       
+        private readonly IImgurService _imgurService;
+        private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
         private readonly ILogger<BotService> _logger;
 
         private ConcurrentBag<MessageThing> unresolvedMessages = new ConcurrentBag<MessageThing>();
 
-        public BotService(IRedditService redditService, IImageService imageService, IImgurService imgurService, ApplicationDbContext context, ILogger<BotService> logger, IMapper mapper)
+        public BotService(IRedditService redditService, IImageService imageService, IImgurService imgurService, IConfiguration configuration, ILogger<BotService> logger, IMapper mapper)
         {
             _redditService = redditService;
             _imageService = imageService;
             _imgurService = imgurService;
-            _context = context;
+            _configuration = configuration;
             _logger = logger;
             _mapper = mapper;
         }
         public async Task InitializeAsync()
         {
-            await _redditService.InitializeAsync();
-            var timer = new Timer(async (stateInfo) => await GenerateImagesAsync(), null, 0, 10000);
+            await _redditService.InitializeAsync();            
         }
 
-        private async Task GenerateImagesAsync()
+        public async Task GenerateImagesAsync()
         {
+            var context = GetApplicationDbContext();
             var messages = await _redditService.GetUnreadMessagesAsync();
             var messagesFullNames = messages.Select(x => x.Name);
-            var databaseMessages = await _context.Messages.Where(x => messagesFullNames.Contains(x.Fullname)).Select(x => x.Fullname).ToListAsync();
+            var databaseMessages = await context.Messages.Where(x => messagesFullNames.Contains(x.Fullname)).Select(x => x.Fullname).ToListAsync();
             var unprocessedMessages = messages.Where(x => !databaseMessages.Contains(x.Name));
 
-            await _context.Messages.AddRangeAsync(_mapper.Map<List<Message>>(unprocessedMessages));
-            await _context.SaveChangesAsync();
+            await context.Messages.AddRangeAsync(_mapper.Map<List<Message>>(unprocessedMessages));
+            await context.SaveChangesAsync();
 
             unresolvedMessages = new ConcurrentBag<MessageThing>(unprocessedMessages);
+            try
+            {
+                ProcessImagesInParallelAsync();
+            }
+            catch (AggregateException exceptions)
+            {
+                foreach (var exception in exceptions.Flatten().InnerExceptions)
+                {
+                    _logger.LogError(exception.Message);
+                }
+            }
+            context.Dispose();
+        }
+
+        private void ProcessImagesInParallelAsync()
+        {
             Parallel.ForEach(unresolvedMessages, async (unresolvedMessage) =>
             {
-                var post = await _redditService.GetPostAsync(unresolvedMessage.ParentId);
-                var image = await _imageService.GenerateImageAsync(post.Title, post.Url);
+                _logger.LogInformation("Started processing unread messages.");                
+                var context = GetApplicationDbContext();
 
-                var link = await _imgurService.UploadImageAsync(image);
+                var link = "";
+                var post = await _redditService.GetPostAsync(unresolvedMessage.ParentId);
+                var processedPost = await context.ProcessedPosts.FirstOrDefaultAsync(x => x.Fullname == unresolvedMessage.ParentId);
+                if (processedPost != null)
+                {
+                    link = processedPost.ImageUrl;
+                }
+                else
+                {
+                    var image = await _imageService.GenerateImageAsync(post.Title, post.Url);
+                    link = await _imgurService.UploadImageAsync(image);
+
+                    processedPost = new ProcessedPost { Fullname = unresolvedMessage.ParentId, ImageUrl = link };
+                    await context.ProcessedPosts.AddAsync(processedPost);
+                    await context.SaveChangesAsync();
+                }
+
+                var messageToUpdate = await context.Messages.FirstOrDefaultAsync(x => x.Fullname == unresolvedMessage.Name);
+                messageToUpdate.IsProcessed = true;
+                messageToUpdate.PostId = processedPost.Id;
+                await context.SaveChangesAsync();
+
                 await _redditService.ReplyAsync(unresolvedMessage.Name, link);
                 await _redditService.ReadMessageAsync(unresolvedMessage.Name);
-
-                var messageToUpdate = await _context.Messages.FirstOrDefaultAsync(x => x.Fullname == unresolvedMessage.Name);
-                messageToUpdate.IsProcessed = true;
-
-                await _context.ProcessedPosts.AddAsync(new ProcessedPost { Fullname = unresolvedMessage.ParentId, ImageUrl = link });
-                await _context.SaveChangesAsync();
+                _logger.LogInformation("Ended processing unread messages.");
+                context.Dispose();
             });
+        }
+
+        private ApplicationDbContext GetApplicationDbContext()
+        {
+            //TODO: Use IServiceScopeFactory
+            var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            builder.UseNpgsql(_configuration.GetConnectionString("Heroku"));
+
+            var context = new ApplicationDbContext(builder.Options);
+            return context;
         }
     }
 }

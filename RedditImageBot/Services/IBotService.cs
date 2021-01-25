@@ -8,5 +8,6 @@ namespace RedditImageBot.Services
     public interface IBotService
     {
         Task InitializeAsync();
+        Task GenerateImagesAsync();
     }
 }

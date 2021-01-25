@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RedditImageBot.Utilities;
@@ -14,26 +15,40 @@ namespace RedditImageBot.Services
 {
     public class HostedService : IHostedService
     {
-        private readonly IConfiguration _configuration;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<HostedService> _logger;
-        private readonly IBotService _botService;
+        private Timer _timer;
 
-        public HostedService(IConfiguration configuration, ILogger<HostedService> logger, IBotService botService)
+        public HostedService(IServiceScopeFactory serviceScopeFactory, ILogger<HostedService> logger)
         {
-            _configuration = configuration;
+            _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
-            _botService = botService;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation($"StartAsync has been called");
-            await _botService.InitializeAsync();
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var botService = scope.ServiceProvider.GetRequiredService<IBotService>();
+                await botService.InitializeAsync();
+            }
+            _timer = new Timer(async (stateInfo) => await PollAndResolveRequest(), null, TimeSpan.Zero, TimeSpan.FromSeconds(20));
+        }
+
+        public async Task PollAndResolveRequest()
+        {
+            using (var scope = _serviceScopeFactory.CreateScope())
+            {
+                var botService = scope.ServiceProvider.GetRequiredService<IBotService>();
+                await botService.GenerateImagesAsync();
+            }
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("StopAsync has been called");
+            _timer.Change(Timeout.Infinite, 0);
             return Task.CompletedTask;
         }
     }

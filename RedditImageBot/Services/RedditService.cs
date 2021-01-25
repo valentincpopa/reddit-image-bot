@@ -49,7 +49,11 @@ namespace RedditImageBot.Services
             };
 
             var response = await _redditWebAgent.SendRequestAsync(httpRequestOptions);
-            //TODO: log the response
+            if (response == null)
+            {
+                throw new Exception($"Could not reply to the message: {parent}.");
+            }
+            _logger.LogInformation(await response.Content.ReadAsStringAsync());
         }
 
         public async Task<IEnumerable<MessageThing>> GetUnreadMessagesAsync()
@@ -64,6 +68,10 @@ namespace RedditImageBot.Services
             };
 
             var response = await _redditWebAgent.SendRequestAsync(httpRequestOptions);
+            if (response == null)
+            {
+                throw new Exception($"Could not get unread messages.");
+            }
             var content = await response.Content.ReadAsStringAsync();
             var root = JsonConvert.DeserializeObject<Root<MessageThing>>(content);
 
@@ -83,6 +91,10 @@ namespace RedditImageBot.Services
             };
 
             var response = await _redditWebAgent.SendRequestAsync(httpRequestOptions);
+            if (response == null)
+            {
+                throw new Exception($"Could not retrieve parent post: {fullname}.");
+            }
             var content = await response.Content.ReadAsStringAsync();
             var root = JsonConvert.DeserializeObject<Root<PostThing>>(content);
 
@@ -102,6 +114,10 @@ namespace RedditImageBot.Services
             };
 
             var response = await _redditWebAgent.SendRequestAsync(httpRequestOptions);
+            if (response == null)
+            {
+                throw new Exception($"Could not mark message as read: {fullname}.");
+            }
         }
     }
 }

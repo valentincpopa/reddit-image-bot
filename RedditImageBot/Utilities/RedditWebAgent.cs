@@ -19,6 +19,7 @@ namespace RedditImageBot.Utilities
     public class RedditWebAgent
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogger<RedditWebAgent> _logger;
         private readonly RedditConfiguration _redditConfiguration;
         private string AccessToken;
         private int Authenticating;
@@ -27,6 +28,7 @@ namespace RedditImageBot.Utilities
         public RedditWebAgent(IHttpClientFactory httpClientFactory, IOptions<RedditConfiguration> redditConfigurations, ILogger<RedditWebAgent> logger)
         {
             _httpClientFactory = httpClientFactory;
+            _logger = logger;
             _redditConfiguration = redditConfigurations.Value;
             RateLimitData = new RateLimitData();
         }
@@ -68,6 +70,10 @@ namespace RedditImageBot.Utilities
                     AccessToken = authenticationResponse.AccessToken;
                 }
             }
+            else
+            {
+                await HandleErrors(response);
+            }
         }
 
         public async Task<HttpResponseMessage> SendRequestAsync(HttpRequestOptions httpRequestOptions)
@@ -105,6 +111,11 @@ namespace RedditImageBot.Utilities
                     {
                         if (authenticatingInProgress) Interlocked.Exchange(ref Authenticating, 0);
                     }
+                } 
+                else
+                {
+                    SetRateLimit(response);
+                    await HandleErrors(response);
                 }
                 await Task.Delay(3000);
             }
@@ -116,6 +127,7 @@ namespace RedditImageBot.Utilities
             if (RateLimitData.RemainingRequests == 0)
             {
                 await Task.Delay(RateLimitData.TimeUntilReset.Value * 10);
+                _logger.LogInformation($"Rate limit hit. Waiting for: {RateLimitData.TimeUntilReset.Value} seconds.");
             }
         }
 
@@ -140,6 +152,13 @@ namespace RedditImageBot.Utilities
                 return (int)Convert.ToDouble(headerValues.First());
             }
             return null;
+        }
+
+        private async Task HandleErrors(HttpResponseMessage response)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            var error = JsonConvert.DeserializeObject<ErrorResponse>(content);
+            _logger.LogWarning(error != null ? error.ToString() : response.StatusCode.ToString());
         }
 
         private FormUrlEncodedContent GetAuthenticationFormUrlEncodedContent(bool isRefresh)

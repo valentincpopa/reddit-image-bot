@@ -74,6 +74,9 @@ namespace RedditImageBot.Services
             outputStream.Seek(0, SeekOrigin.Begin);
             await outputImage.SaveAsync(outputStream, new JpegEncoder());
 
+            await imageStream.DisposeAsync();
+            redditImage.Dispose();            
+            outputImage.Dispose();
             return outputStream;
         }
 

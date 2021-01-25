@@ -15,7 +15,7 @@ namespace RedditImageBot.Database
             builder.Property(x => x.Fullname).HasColumnType("varchar(16)").IsRequired();
             builder.Property(x => x.ImageUrl).HasColumnType("varchar(1024)").IsRequired();
 
-            builder.HasMany(x => x.Messages).WithOne(x => x.Post).HasForeignKey(x => x.PostId).OnDelete(DeleteBehavior.SetNull);
+            builder.HasMany(x => x.Messages).WithOne(x => x.Post).HasForeignKey(x => x.PostId).OnDelete(DeleteBehavior.SetNull).IsRequired(false);
         }
     }
 }

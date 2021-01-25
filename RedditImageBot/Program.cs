@@ -6,6 +6,8 @@ using NLog.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using AutoMapper;
 using RedditImageBot.Models;
+using Microsoft.Extensions.Http;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace RedditImageBot
 {
@@ -23,6 +25,7 @@ namespace RedditImageBot
                 services.AddHostedService<HostedService>();
                 services.ConfigureServices(hostContext.Configuration);
                 services.AddAutoMapper(typeof(Program).Assembly);
+                //services.RemoveAll<IHttpMessageHandlerBuilderFilter>();
             })
             .ConfigureLogging(logging =>
             {

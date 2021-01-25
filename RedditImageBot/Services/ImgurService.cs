@@ -31,6 +31,7 @@ namespace RedditImageBot.Services
             var imageEndpoint = new ImageEndpoint(apiClient, httpClient);
             fileStream.Seek(0, SeekOrigin.Begin);
             var imageUpload = await imageEndpoint.UploadImageAsync(fileStream);
+            await fileStream.DisposeAsync();
             return imageUpload.Link;
         }
     }
