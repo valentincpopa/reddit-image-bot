@@ -40,8 +40,16 @@ namespace RedditImageBot.Services
         {
             using (var scope = _serviceScopeFactory.CreateScope())
             {
-                var botService = scope.ServiceProvider.GetRequiredService<IBotService>();
-                await botService.GenerateImagesAsync();
+                try
+                {
+                    var botService = scope.ServiceProvider.GetRequiredService<IBotService>();
+                    await botService.GenerateImagesAsync();
+                }
+                catch(Exception exception)
+                {
+                    _logger.LogError(exception.ToString());
+                    throw;
+                }
             }
         }
 

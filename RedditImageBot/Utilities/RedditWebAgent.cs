@@ -80,10 +80,18 @@ namespace RedditImageBot.Utilities
         {
             var request = CreateRequest(httpRequestOptions);
             HttpResponseMessage response = null;
+            var shouldRefreshHttpClient = false;
 
-            for (int i = 0; i <= httpRequestOptions.Retries; i++)
+            for (int i = 1; i <= httpRequestOptions.Retries; i++)
             {
+                _logger.LogInformation("Attempt [{tryNo} out of {noTries}]..", i, httpRequestOptions.Retries);
                 await CheckAndWaitRateLimit();
+
+                if (shouldRefreshHttpClient)
+                {
+                    request = CreateRequest(httpRequestOptions);
+                    shouldRefreshHttpClient = false;
+                }
 
                 var requestTask = request();
                 response = await requestTask;
@@ -95,6 +103,7 @@ namespace RedditImageBot.Utilities
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
+                    shouldRefreshHttpClient = true;
                     var authenticatingInProgress = false;
                     try
                     {
@@ -104,7 +113,7 @@ namespace RedditImageBot.Utilities
                             await Task.Delay(2000);
                             continue;
                         }
-                        await Authenticate();
+                        await Authenticate();                        
                         continue;
                     }
                     finally

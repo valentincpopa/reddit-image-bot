@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RedditImageBot.Database;
 using RedditImageBot.Models;
@@ -17,6 +18,7 @@ namespace RedditImageBot.Services
 {
     public class BotService : IBotService
     {
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly IRedditService _redditService;
         private readonly IImageService _imageService;
         private readonly IImgurService _imgurService;
@@ -26,8 +28,16 @@ namespace RedditImageBot.Services
 
         private ConcurrentBag<MessageThing> unresolvedMessages = new ConcurrentBag<MessageThing>();
 
-        public BotService(IRedditService redditService, IImageService imageService, IImgurService imgurService, IConfiguration configuration, ILogger<BotService> logger, IMapper mapper)
+        public BotService(
+            IServiceScopeFactory scopeFactory, 
+            IRedditService redditService, 
+            IImageService imageService, 
+            IImgurService imgurService, 
+            IConfiguration configuration, 
+            ILogger<BotService> logger, 
+            IMapper mapper)
         {
+            _scopeFactory = scopeFactory;
             _redditService = redditService;
             _imageService = imageService;
             _imgurService = imgurService;
@@ -104,7 +114,6 @@ namespace RedditImageBot.Services
 
         private ApplicationDbContext GetApplicationDbContext()
         {
-            //TODO: Use IServiceScopeFactory
             var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
             builder.UseNpgsql(_configuration.GetConnectionString("Heroku"));
 
