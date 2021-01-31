@@ -24,6 +24,7 @@ namespace RedditImageBot.Services
             services.Configure<RedditConfiguration>(configuration.GetSection("RedditConfiguration"));
             services.Configure<ImgurConfiguration>(configuration.GetSection("ImgurConfiguration"));
             services.Configure<ImageConfiguration>(configuration.GetSection("ImageConfiguration"));
+            services.Configure<ThreadingConfiguration>(configuration.GetSection("ThreadingConfiguration"));
             services.AddSingleton<RedditWebAgent>();
             services.AddScoped<IRedditService, RedditService>();
             services.AddScoped<IImgurService, ImgurService>();

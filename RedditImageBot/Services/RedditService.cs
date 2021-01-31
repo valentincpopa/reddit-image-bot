@@ -76,7 +76,7 @@ namespace RedditImageBot.Services
             var root = JsonConvert.DeserializeObject<Root<MessageThing>>(content);
 
             var messages = root.Data.Children.Select(x => x.Data);
-            return messages;
+            return messages.Where(x => x.Type == "username_mention" && x.WasComment);
         }
 
         public async Task<PostThing> GetPostAsync(string fullname)

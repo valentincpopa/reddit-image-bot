@@ -45,7 +45,15 @@ namespace RedditImageBot.Services
                     var botService = scope.ServiceProvider.GetRequiredService<IBotService>();
                     await botService.GenerateImagesAsync();
                 }
-                catch(Exception exception)
+                catch (AggregateException aggregateException)
+                {
+                    foreach (var exception in aggregateException.Flatten().InnerExceptions)
+                    {
+                        _logger.LogError(exception.ToString());
+                    }
+                    throw;
+                }
+                catch (Exception exception)
                 {
                     _logger.LogError(exception.ToString());
                     throw;

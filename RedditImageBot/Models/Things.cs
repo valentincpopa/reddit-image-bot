@@ -30,6 +30,8 @@ namespace RedditImageBot.Models
         public string Name { get; set; }
         public string Context { get; set; }
         public string ParentId { get; set; }
+        public string Type { get; set; }
+        public bool WasComment { get; set; }
 
         public bool Equals([AllowNull] MessageThing other)
         {
