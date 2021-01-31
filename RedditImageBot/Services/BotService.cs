@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using RedditImageBot.Database;
 using RedditImageBot.Models;
 using RedditImageBot.Utilities;
+using RedditImageBot.Utilities.Exceptions;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -85,6 +86,11 @@ namespace RedditImageBot.Services
                     {
                         var link = "";
                         var post = await _redditService.GetPostAsync(message.ParentId);
+                        var postIsRedditImage = !post.IsSelf && post.IsRedditMediaDomain && !post.IsVideo;
+                        if (!postIsRedditImage)
+                        {
+                            throw new InvalidPostException("The requested post does not represent an image or its source is not a reddit media domain.");
+                        }
                         var processedPost = await context.ProcessedPosts.FirstOrDefaultAsync(x => x.Fullname == message.ParentId);
                         if (processedPost != null)
                         {
@@ -105,8 +111,14 @@ namespace RedditImageBot.Services
                         messageToUpdate.PostId = processedPost.Id;
                         await context.SaveChangesAsync();
 
-                        await _redditService.ReplyAsync(message.Name, link);
-                        await _redditService.ReadMessageAsync(message.Name);
+                        await _redditService.ReplyAsync(message.Name, link);                        
+                    }
+                    catch (InvalidPostException exception)
+                    {
+                        var messageToUpdate = await context.Messages.FirstOrDefaultAsync(x => x.Fullname == message.Name);
+                        messageToUpdate.IsProcessed = true;
+                        await context.SaveChangesAsync();
+                        _logger.LogWarning(exception.ToString());
                     }
                     catch (Exception exception)
                     {
@@ -114,6 +126,7 @@ namespace RedditImageBot.Services
                     }
                     finally
                     {
+                        await _redditService.ReadMessageAsync(message.Name);
                         semaphore.Release();
                         context.Dispose();
                     }

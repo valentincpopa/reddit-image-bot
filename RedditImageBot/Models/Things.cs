@@ -45,12 +45,17 @@ namespace RedditImageBot.Models
         {
             return HashCode.Combine(Name);
         }
-    }    
+    }
 
+    [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
     public class PostThing
     {
         public string Title { get; set; }
         public string Url { get; set; }
+        public bool Archived { get; set; }
+        public bool IsSelf { get; set; }
+        public bool IsVideo { get; set; }
+        public bool IsRedditMediaDomain { get; set; }
     }
 
 }
