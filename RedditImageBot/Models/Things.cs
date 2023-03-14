@@ -1,12 +1,10 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 
 namespace RedditImageBot.Models
-{    
+{
     public class Root<T>
     {
         public string Kind { get; set; }
@@ -26,7 +24,7 @@ namespace RedditImageBot.Models
 
     [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
     public class MessageThing : IEquatable<MessageThing>
-    {        
+    {
         public string Name { get; set; }
         public string Context { get; set; }
         public string ParentId { get; set; }
@@ -37,10 +35,12 @@ namespace RedditImageBot.Models
         {
             return null != other && Name == other.Name;
         }
+
         public override bool Equals(object obj)
         {
             return Equals(obj as MessageThing);
         }
+
         public override int GetHashCode()
         {
             return HashCode.Combine(Name);
@@ -56,6 +56,10 @@ namespace RedditImageBot.Models
         public bool IsSelf { get; set; }
         public bool IsVideo { get; set; }
         public bool IsRedditMediaDomain { get; set; }
-    }
 
+        public bool IsRedditImage
+        {
+            get => !this.IsSelf && this.IsRedditMediaDomain && !this.IsVideo;
+        }
+    }
 }

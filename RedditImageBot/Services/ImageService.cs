@@ -1,20 +1,15 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using RedditImageBot.Services.Abstractions;
 using RedditImageBot.Utilities;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
-using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace RedditImageBot.Services
@@ -38,6 +33,8 @@ namespace RedditImageBot.Services
 
         public async Task<MemoryStream> GenerateImageAsync(string title, string imageUri)
         {
+            _logger.LogInformation("Started generating the image...");
+
             var imageStream = await DownloadImageAsync(imageUri);
             var redditImage = await Image.LoadAsync(imageStream);
 
@@ -77,6 +74,8 @@ namespace RedditImageBot.Services
             await imageStream.DisposeAsync();
             redditImage.Dispose();
             outputImage.Dispose();
+
+            _logger.LogInformation("Finished generating the image...");
             return outputStream;
         }
 
@@ -95,9 +94,9 @@ namespace RedditImageBot.Services
 
         private FontFamily GetFontFamily()
         {
-            FontCollection collection = new FontCollection();
-            FontFamily family = collection.Install(Path.Combine(Path.GetDirectoryName(typeof(ImageService).Assembly.Location), _options.TitleFont));
-            return family;
+            var fontCollection = new FontCollection();
+            var fontFamily = fontCollection.Install(Path.Combine(Path.GetDirectoryName(typeof(ImageService).Assembly.Location), _options.TitleFont));
+            return fontFamily;
         }
     }
 }

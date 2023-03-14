@@ -1,13 +1,13 @@
-﻿using AutoMapper;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using RedditImageBot.Models;
+using RedditImageBot.Services.Abstractions;
+using RedditImageBot.Services.WebAgents;
 using RedditImageBot.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace RedditImageBot.Services
@@ -16,18 +16,11 @@ namespace RedditImageBot.Services
     {
         private readonly RedditWebAgent _redditWebAgent;
         private readonly ILogger<RedditService> _logger;
-        private readonly IMapper _mapper;
 
-        public RedditService(RedditWebAgent redditWebAgent, ILogger<RedditService> logger, IMapper mapper)
+        public RedditService(RedditWebAgent redditWebAgent, ILogger<RedditService> logger)
         {
             _redditWebAgent = redditWebAgent;
             _logger = logger;
-            _mapper = mapper;
-        }
-
-        public async Task InitializeAsync()
-        {
-            await _redditWebAgent.Initialize();
         }
 
         public async Task ReplyAsync(string parent, string text)
@@ -38,7 +31,7 @@ namespace RedditImageBot.Services
                 new KeyValuePair<string, string>("text", text)
             });
 
-            var httpRequestOptions = new HttpRequestOptions
+            var httpRequestOptions = new InternalHttpRequestOptions
             {
                 HttpContent = content,
                 HttpMethod = HttpMethod.Post,
@@ -58,7 +51,7 @@ namespace RedditImageBot.Services
 
         public async Task<IEnumerable<MessageThing>> GetUnreadMessagesAsync()
         {
-            var httpRequestOptions = new HttpRequestOptions
+            var httpRequestOptions = new InternalHttpRequestOptions
             {
                 HttpMethod = HttpMethod.Get,
                 IsOauth = true,
@@ -81,7 +74,7 @@ namespace RedditImageBot.Services
 
         public async Task<PostThing> GetPostAsync(string fullname)
         {
-            var httpRequestOptions = new HttpRequestOptions
+            var httpRequestOptions = new InternalHttpRequestOptions
             {
                 HttpMethod = HttpMethod.Get,
                 IsOauth = true,
@@ -104,7 +97,7 @@ namespace RedditImageBot.Services
 
         public async Task ReadMessageAsync(string fullname)
         {
-            var httpRequestOptions = new HttpRequestOptions
+            var httpRequestOptions = new InternalHttpRequestOptions
             {
                 HttpMethod = HttpMethod.Post,
                 IsOauth = true,

@@ -1,13 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using RedditImageBot.Utilities;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+using RedditImageBot.Processing.Pipelines;
+using RedditImageBot.Services.WebAgents;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,55 +11,45 @@ namespace RedditImageBot.Services
     public class HostedService : IHostedService
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<HostedService> _logger;
         private Timer _timer;
 
-        public HostedService(IServiceScopeFactory serviceScopeFactory, ILogger<HostedService> logger)
+        public HostedService(IServiceScopeFactory serviceScopeFactory, ILoggerFactory loggerFactory)
         {
             _serviceScopeFactory = serviceScopeFactory;
-            _logger = logger;
+            _loggerFactory = loggerFactory;
+            _logger = loggerFactory.CreateLogger<HostedService>();
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation($"StartAsync has been called");
-            using (var scope = _serviceScopeFactory.CreateScope())
-            {
-                var botService = scope.ServiceProvider.GetRequiredService<IBotService>();
-                await botService.InitializeAsync();
-            }
-            _timer = new Timer(async (stateInfo) => await PollAndResolveRequest(), null, TimeSpan.Zero, TimeSpan.FromSeconds(20));
+            _logger.LogInformation($"StartAsync has been called...");
+
+            await ExecutePreProcessingActions();
+            await Process();
+
+            //_timer = new Timer(async (stateInfo) => await Process(), null, TimeSpan.Zero, TimeSpan.FromSeconds(15));
         }
 
-        public async Task PollAndResolveRequest()
+        private async Task ExecutePreProcessingActions()
         {
-            using (var scope = _serviceScopeFactory.CreateScope())
-            {
-                try
-                {
-                    var botService = scope.ServiceProvider.GetRequiredService<IBotService>();
-                    await botService.GenerateImagesAsync();
-                }
-                catch (AggregateException aggregateException)
-                {
-                    foreach (var exception in aggregateException.Flatten().InnerExceptions)
-                    {
-                        _logger.LogError(exception.ToString());
-                    }
-                    throw;
-                }
-                catch (Exception exception)
-                {
-                    _logger.LogError(exception.ToString());
-                    throw;
-                }
-            }
+            using var scope = _serviceScopeFactory.CreateScope();
+            var redditWebAgent = scope.ServiceProvider.GetService<RedditWebAgent>();
+            await redditWebAgent.Initialize();
+        }
+
+        public async Task Process()
+        {
+            var pipelineWorker = new PipelineWorker(_serviceScopeFactory, _loggerFactory.CreateLogger<PipelineWorker>());
+            await pipelineWorker.StartWorkflow();
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("StopAsync has been called");
+            _logger.LogInformation("StopAsync has been called...");
             _timer.Change(Timeout.Infinite, 0);
+            _timer.Dispose();
             return Task.CompletedTask;
         }
     }

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace RedditImageBot.Utilities
+﻿namespace RedditImageBot.Utilities.Configurations
 {
-    public class RedditConfiguration
+    public class WebAgentConfiguration
     {
         public string Url { get; set; }
         public string OauthUrl { get; set; }

@@ -1,14 +1,11 @@
 ﻿using RedditImageBot.Models;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace RedditImageBot.Services
+namespace RedditImageBot.Services.Abstractions
 {
     public interface IRedditService
     {
-        Task InitializeAsync();
         Task ReplyAsync(string parent, string text);
         Task ReadMessageAsync(string fullname);
         Task<IEnumerable<MessageThing>> GetUnreadMessagesAsync();

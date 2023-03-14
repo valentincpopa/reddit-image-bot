@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
+﻿using System.Net.Http;
 
 namespace RedditImageBot.Utilities
 {
-    public class HttpRequestOptions
+    public class InternalHttpRequestOptions
     {
         public HttpMethod HttpMethod { get; set; }
         public HttpContent HttpContent { get; set; }

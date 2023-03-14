@@ -1,10 +1,6 @@
 ﻿using AutoMapper;
 using RedditImageBot.Database;
 using RedditImageBot.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace RedditImageBot.Utilities
 {
@@ -13,7 +9,12 @@ namespace RedditImageBot.Utilities
         public AutoMapperProfiles()
         {
             CreateMap<MessageThing, Message>()
-                .ForMember(x => x.Fullname, opt => opt.MapFrom(x => x.Name));
+                .ForMember(x => x.ExternalId, opt => opt.MapFrom(x => x.Name));
+
+            CreateMap<Message, MessageMetadata>()
+                .ForMember(x => x.MessageId, opt => opt.MapFrom(x => x.Id))
+                .ForMember(x => x.ExternalId, opt => opt.MapFrom(x => x.ExternalId))
+                .ForMember(x => x.ExternalCommentId, opt => opt.MapFrom(x => x.ExternalId));
         }
     }
 }
