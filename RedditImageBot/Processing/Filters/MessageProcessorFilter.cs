@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RedditImageBot.Database;
 using RedditImageBot.Models;
 using RedditImageBot.Services.Abstractions;
-using System;
+using RedditImageBot.Utilities.Configurations;
+using RedditImageBot.Utilities.Exceptions;
 using System.Threading.Tasks;
 
 namespace RedditImageBot.Processing.Filters
@@ -13,16 +15,18 @@ namespace RedditImageBot.Processing.Filters
         private readonly IDbContextFactory<ApplicationDbContext> _applicationDbContextFactory;
         private readonly ILogger<MessageProcessorFilter> _logger;
         private readonly IRedditService _redditService;
-
+        private readonly RedditAccountConfiguration _options;
 
         public MessageProcessorFilter(
             IDbContextFactory<ApplicationDbContext> applicationDbContextFactory,
             ILogger<MessageProcessorFilter> logger,
-            IRedditService redditService)
+            IRedditService redditService,
+            IOptions<RedditAccountConfiguration> options)
         {
             _applicationDbContextFactory = applicationDbContextFactory;
             _logger = logger;
             _redditService = redditService;
+            _options = options.Value;
         }
 
         public async Task<Metadata> Process(Metadata metadata)
@@ -31,7 +35,7 @@ namespace RedditImageBot.Processing.Filters
 
             if (!metadata.MessageMetadata.MessageId.HasValue)
             {
-                throw new InvalidOperationException("Invalid operation.");
+                throw new FilterProcessingException("The provided metadata doesn't contain the required information (messageId).");
             }
 
             using var applicationDbContext = await _applicationDbContextFactory.CreateDbContextAsync();
@@ -41,7 +45,7 @@ namespace RedditImageBot.Processing.Filters
 
             if (!metadata.PostMetadata.PostId.HasValue)
             {
-                throw new InvalidOperationException("Invalid operation.");
+                throw new FilterProcessingException("The provided metadata doesn't contain the required information (postId).");
             }
 
             messageToUpdate.PostId = metadata.PostMetadata.PostId;
@@ -53,10 +57,11 @@ namespace RedditImageBot.Processing.Filters
                  $"This post does not represent a valid image that I can process.\n\n";
             responseMessage = responseMessage +
                 $"*I am a bot, and this action was performed automatically. " +
-                $"Please [contact the creator of this bot](/message/compose/?to=/u/replace-this-random-name) if you have any questions or concerns.*";
+                $"Please [contact the creator of this bot](/message/compose/?to=/u/{_options.Username}) if you have any questions or concerns.*";
 
             await _redditService.ReplyAsync(metadata.MessageMetadata.ExternalCommentId, responseMessage);
-            
+            await _redditService.ReadMessageAsync(metadata.MessageMetadata.ExternalId);
+
             await applicationDbContext.SaveChangesAsync();
 
             return metadata;

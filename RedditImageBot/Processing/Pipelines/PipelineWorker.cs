@@ -2,10 +2,14 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RedditImageBot.Database;
 using RedditImageBot.Models;
 using RedditImageBot.Processing.Filters;
 using RedditImageBot.Services.Abstractions;
+using RedditImageBot.Utilities.Configurations;
+using RedditImageBot.Utilities.Exceptions;
+using System;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
@@ -28,7 +32,7 @@ namespace RedditImageBot.Processing.Pipelines
 
             using var scope = _serviceScopeFactory.CreateScope();
 
-            var pipeline = new Pipeline<string, Task>();
+            var pipeline = new Pipeline<string, Metadata>();
 
             var messageReaderFilter = new MessageReaderFilter(
                 scope.ServiceProvider.GetService<IDbContextFactory<ApplicationDbContext>>(),
@@ -50,7 +54,8 @@ namespace RedditImageBot.Processing.Pipelines
             var messageProcessorFilter = new MessageProcessorFilter(
                 scope.ServiceProvider.GetService<IDbContextFactory<ApplicationDbContext>>(),
                 scope.ServiceProvider.GetService<ILogger<MessageProcessorFilter>>(),
-                scope.ServiceProvider.GetService<IRedditService>());
+                scope.ServiceProvider.GetService<IRedditService>(),
+                scope.ServiceProvider.GetService<IOptions<RedditAccountConfiguration>>());
 
             pipeline
                 .AddFilter(
@@ -76,9 +81,18 @@ namespace RedditImageBot.Processing.Pipelines
 
             pipeline.SendData(string.Empty);
 
-            await pipeline.Complete();
-
-            _logger.LogInformation("Completed the pipeline processing.");
+            try
+            {
+                await pipeline.Complete();
+            }
+            catch (Exception exception)
+            {
+                throw new PipelineException("Something went wrong during the processing of the pipeline.", exception);
+            }
+            finally
+            {
+                _logger.LogInformation("Completed the pipeline processing.");
+            }
         }
     }
 }

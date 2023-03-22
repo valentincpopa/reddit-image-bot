@@ -39,7 +39,7 @@ namespace RedditImageBot.Services.WebAgents
             {
                 var content = await response.Content.ReadAsStringAsync();
                 var authenticationResponse = JsonConvert.DeserializeObject<AuthenticationResponse>(content);
-                _logger.LogInformation(authenticationResponse.AccessToken);
+
                 var lockObj = new object();
                 lock (lockObj)
                 {
@@ -47,6 +47,7 @@ namespace RedditImageBot.Services.WebAgents
                     {
                         _webAgentConfiguration.RefreshToken = authenticationResponse.RefreshToken;
                     }
+
                     AccessToken = authenticationResponse.AccessToken;
                 }
             }
@@ -72,7 +73,7 @@ namespace RedditImageBot.Services.WebAgents
         {
             var content = await response.Content.ReadAsStringAsync();
             var error = JsonConvert.DeserializeObject<ErrorResponse>(content);
-            _logger.LogWarning(error != null ? error.ToString() : response.StatusCode.ToString());
+            _logger.LogError("An error occured during the processing of the request: {statusCode} - '{error}'.", response.StatusCode, error != null ? error : "no error message returned");
         }
 
         private FormUrlEncodedContent GetAuthenticationFormUrlEncodedContent(bool isRefresh)

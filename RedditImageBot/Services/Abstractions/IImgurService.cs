@@ -5,6 +5,6 @@ namespace RedditImageBot.Services.Abstractions
 {
     public interface IImgurService
     {
-        Task<string> UploadImageAsync(MemoryStream fileStream);
+        Task<string> UploadImageAsync(MemoryStream memoryStream);
     }
 }

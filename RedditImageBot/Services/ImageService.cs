@@ -24,7 +24,8 @@ namespace RedditImageBot.Services
             _options = options.Value;
             _logger = logger;
         }
-        private async Task<Stream> DownloadImageAsync(string imageUri)
+
+        private static async Task<Stream> DownloadImageAsync(string imageUri)
         {
             var httpClient = new HttpClient();
             var imageStream = await httpClient.GetStreamAsync(imageUri);
@@ -33,7 +34,7 @@ namespace RedditImageBot.Services
 
         public async Task<MemoryStream> GenerateImageAsync(string title, string imageUri)
         {
-            _logger.LogInformation("Started generating the image...");
+            _logger.LogInformation("Started generating the image.");
 
             var imageStream = await DownloadImageAsync(imageUri);
             var redditImage = await Image.LoadAsync(imageStream);
@@ -68,18 +69,17 @@ namespace RedditImageBot.Services
             outputImage.Mutate(x => x.DrawImage(redditImage, new Point(0, (int)textImageSize.Height), 1f));
 
             var outputStream = new MemoryStream();
-            outputStream.Seek(0, SeekOrigin.Begin);
             await outputImage.SaveAsync(outputStream, new JpegEncoder());
 
             await imageStream.DisposeAsync();
             redditImage.Dispose();
             outputImage.Dispose();
 
-            _logger.LogInformation("Finished generating the image...");
+            _logger.LogInformation("Finished generating the image.");
             return outputStream;
         }
 
-        private TextGraphicsOptions GetTextGraphicsOptions(float imageWidth)
+        private static TextGraphicsOptions GetTextGraphicsOptions(float imageWidth)
         {
             return new TextGraphicsOptions()
             {

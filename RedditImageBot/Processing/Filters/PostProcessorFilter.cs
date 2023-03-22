@@ -34,7 +34,7 @@ namespace RedditImageBot.Processing.Filters
                 {
                     _logger.LogInformation("Generating the image for {ExternalPostId}..", metadata.PostMetadata.ExternalId);
                     using var generatedImage = await _imageService.GenerateImageAsync(metadata.PostMetadata.PostTitle, metadata.PostMetadata.OriginalImageUrl);
-                    metadata.PostMetadata.SetupGeneratedImageUrl(await _imgurService.UploadImageAsync(generatedImage));
+                    metadata.PostMetadata.GeneratedImageUrl = await _imgurService.UploadImageAsync(generatedImage);
                 }
 
                 using var applicationDbContext = await _applicationDbContextFactory.CreateDbContextAsync();

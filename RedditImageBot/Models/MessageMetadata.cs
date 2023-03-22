@@ -2,9 +2,9 @@
 {
     public class MessageMetadata
     {
-        public int? MessageId { get; set; }
-        public string ExternalId { get; set; }
+        public int? MessageId { get; private set; }
+        public string ExternalId { get; private set; }
         public string ExternalPostId { get; set; }
-        public string ExternalCommentId { get; set; }
+        public string ExternalCommentId { get; private set; }
     }
 }

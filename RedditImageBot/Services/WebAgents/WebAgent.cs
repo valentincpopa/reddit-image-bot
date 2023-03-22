@@ -7,6 +7,7 @@ using RedditImageBot.Utilities.Configurations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
@@ -53,7 +54,7 @@ namespace RedditImageBot.Services.WebAgents
 
             for (int i = 1; i <= httpRequestOptions.Retries; i++)
             {
-                _logger.LogInformation("Attempt [{tryNo} out of {noTries}]..", i, httpRequestOptions.Retries);
+                _logger.LogInformation("Attempt [{currentNoOfRetries} out of {noOfRetries}]..", i, httpRequestOptions.Retries);
                 await ProcessRateLimit();
 
                 if (shouldRefreshHttpClient)
@@ -70,10 +71,11 @@ namespace RedditImageBot.Services.WebAgents
                     SetRateLimit(response);
                     return response;
                 }
-                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                else if (response.StatusCode == HttpStatusCode.Unauthorized)
                 {
                     shouldRefreshHttpClient = true;
                     var authenticatingInProgress = false;
+
                     try
                     {
                         authenticatingInProgress = Interlocked.CompareExchange(ref authenticating, 1, 0) != 0;
@@ -82,6 +84,7 @@ namespace RedditImageBot.Services.WebAgents
                             await Task.Delay(1000);
                             continue;
                         }
+
                         await Authenticate();
                         continue;
                     }
@@ -98,12 +101,14 @@ namespace RedditImageBot.Services.WebAgents
                     SetRateLimit(response);
                     await HandleErrors(response);
                 }
+
                 await Task.Delay(3000);
             }
+
             return null;
         }
 
-        protected int? GetNumericHeaderValue(HttpResponseMessage response, string headerName)
+        protected static int? GetNumericHeaderValue(HttpResponseMessage response, string headerName)
         {
             var headerExists = response.Headers.TryGetValues(headerName, out IEnumerable<string> headerValues);
             if (headerExists)
@@ -117,8 +122,8 @@ namespace RedditImageBot.Services.WebAgents
         {
             if (_rateLimitData.RemainingRequests == 0)
             {
-                await Task.Delay(_rateLimitData.TimeUntilReset.Value * 1000);
                 _logger.LogInformation("Rate limit hit. Waiting for: {seconds} seconds.", _rateLimitData.TimeUntilReset.Value);
+                await Task.Delay(_rateLimitData.TimeUntilReset.Value * 1000);
             }
         }
 

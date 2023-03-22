@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RedditImageBot.Utilities.Exceptions;
+using System;
 
 namespace RedditImageBot.Models
 {
@@ -6,7 +7,7 @@ namespace RedditImageBot.Models
     {
         public Metadata(MessageMetadata messageMetadata)
         {
-            MessageMetadata = messageMetadata;
+            MessageMetadata = messageMetadata ?? throw new ArgumentNullException(nameof(messageMetadata));
         }
 
         public MessageMetadata MessageMetadata { get; private set; }
@@ -14,15 +15,21 @@ namespace RedditImageBot.Models
 
         public Metadata SetupMetadata(MessageMetadata messageMetadata)
         {
-            MessageMetadata = messageMetadata;
+            MessageMetadata = messageMetadata ?? throw new ArgumentNullException(nameof(messageMetadata));
             return this;
         }
 
         public Metadata SetupMetadata(PostMetadata postMetadata)
         {
+            if (postMetadata == null)
+            {
+                throw new ArgumentNullException(nameof(postMetadata));
+            }
+
             if (postMetadata.ExternalId != MessageMetadata.ExternalPostId)
             {
-                throw new InvalidOperationException("Invalid operation.");
+                throw new MetadataException($"The external id of the post referenced in the post metadata ({postMetadata.ExternalId})" +
+                    $"should correspond to the external id of the post referenced in the message metadata ({MessageMetadata.ExternalPostId}).");
             }
 
             PostMetadata = postMetadata;

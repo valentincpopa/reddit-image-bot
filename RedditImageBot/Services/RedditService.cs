@@ -4,7 +4,7 @@ using RedditImageBot.Models;
 using RedditImageBot.Services.Abstractions;
 using RedditImageBot.Services.WebAgents;
 using RedditImageBot.Utilities;
-using System;
+using RedditImageBot.Utilities.Exceptions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -44,9 +44,8 @@ namespace RedditImageBot.Services
             var response = await _redditWebAgent.SendRequestAsync(httpRequestOptions);
             if (response == null)
             {
-                throw new Exception($"Could not reply to the message: {parent}.");
+                throw new RedditServiceException($"Could not reply to the message: {parent}.");
             }
-            _logger.LogInformation(await response.Content.ReadAsStringAsync());
         }
 
         public async Task<IEnumerable<MessageThing>> GetUnreadMessagesAsync()
@@ -63,8 +62,9 @@ namespace RedditImageBot.Services
             var response = await _redditWebAgent.SendRequestAsync(httpRequestOptions);
             if (response == null)
             {
-                throw new Exception($"Could not get unread messages.");
+                throw new RedditServiceException($"Could not get unread messages.");
             }
+
             var content = await response.Content.ReadAsStringAsync();
             var root = JsonConvert.DeserializeObject<Root<MessageThing>>(content);
 
@@ -86,8 +86,9 @@ namespace RedditImageBot.Services
             var response = await _redditWebAgent.SendRequestAsync(httpRequestOptions);
             if (response == null)
             {
-                throw new Exception($"Could not retrieve parent post: {fullname}.");
+                throw new RedditServiceException($"Could not retrieve parent post: {fullname}.");
             }
+
             var content = await response.Content.ReadAsStringAsync();
             var root = JsonConvert.DeserializeObject<Root<PostThing>>(content);
 
@@ -109,7 +110,7 @@ namespace RedditImageBot.Services
             var response = await _redditWebAgent.SendRequestAsync(httpRequestOptions);
             if (response == null)
             {
-                throw new Exception($"Could not mark message as read: {fullname}.");
+                throw new RedditServiceException($"Could not mark message as read: {fullname}.");
             }
         }
     }

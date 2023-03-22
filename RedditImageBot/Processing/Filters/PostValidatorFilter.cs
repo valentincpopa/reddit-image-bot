@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using RedditImageBot.Database;
 using RedditImageBot.Models;
 using RedditImageBot.Services.Abstractions;
+using System;
 using System.Threading.Tasks;
 
 namespace RedditImageBot.Processing.Filters
@@ -25,6 +26,7 @@ namespace RedditImageBot.Processing.Filters
 
         public async Task<Metadata> Process(Metadata metadata)
         {
+            throw new Exception("hello world");
             var post = await _redditService.GetPostAsync(metadata.MessageMetadata.ExternalPostId);
             if (!post.IsRedditImage)
             {
@@ -40,7 +42,7 @@ namespace RedditImageBot.Processing.Filters
             var processedPost = await applicationDbContext.Posts.FirstOrDefaultAsync(x => x.ExternalId == postMetadata.ExternalId);
             if (processedPost != null)
             {
-                postMetadata.SetupGeneratedImageUrl(processedPost.GeneratedImageUrl);
+                postMetadata.GeneratedImageUrl = processedPost.GeneratedImageUrl;
                 postMetadata.PostId = processedPost.Id;
             }
 
