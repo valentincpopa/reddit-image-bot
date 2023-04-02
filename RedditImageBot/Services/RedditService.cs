@@ -96,7 +96,7 @@ namespace RedditImageBot.Services
             return posts.FirstOrDefault();
         }
 
-        public async Task ReadMessageAsync(string fullname)
+        public async Task ReadMessagesAsync(string fullname)
         {
             var httpRequestOptions = new InternalHttpRequestOptions
             {
@@ -112,6 +112,31 @@ namespace RedditImageBot.Services
             {
                 throw new RedditServiceException($"Could not mark message as read: {fullname}.");
             }
+        }
+
+        public async Task<List<string>> GetCommentRepliesAuthorsAsync(string postFullName, string commentFullName)
+        {
+            var httpRequestOptions = new InternalHttpRequestOptions
+            {
+                HttpMethod = HttpMethod.Get,
+                IsOauth = true,
+                Uri = $"/comments/{postFullName[3..]}?comment={commentFullName[3..]}",
+                Retries = 3,
+                Timeout = 10
+            };
+
+            var response = await _redditWebAgent.SendRequestAsync(httpRequestOptions);
+            if (response == null)
+            {
+                throw new RedditServiceException($"Could not retrieve comment replies for: {commentFullName}.");
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var root = JsonConvert.DeserializeObject<List<Root<ReplyThingWrapper>>>(content);
+
+            return root.Last().Data.Children
+                .SelectMany(x => x.Data.Replies.Data.Children.Select(x => x.Data.Author))
+                .ToList();
         }
     }
 }

@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using RedditImageBot.Database;
 using RedditImageBot.Models;
 using RedditImageBot.Services.Abstractions;
-using System;
 using System.Threading.Tasks;
 
 namespace RedditImageBot.Processing.Filters
@@ -26,11 +25,12 @@ namespace RedditImageBot.Processing.Filters
 
         public async Task<Metadata> Process(Metadata metadata)
         {
-            throw new Exception("hello world");
+            _logger.LogInformation("Started processing the message identified by the following external id: {ExternalMessageId}", metadata.MessageMetadata.ExternalMessageId);
+
             var post = await _redditService.GetPostAsync(metadata.MessageMetadata.ExternalPostId);
             if (!post.IsRedditImage)
             {
-                _logger.LogWarning("The requested post ({ExternalPostId}) does not represent an image or its source is not a reddit media domain.", metadata.MessageMetadata.ExternalPostId);
+                _logger.LogWarning("The requested post ({ExternalPostId}) does not represent an image or its source does not represent a reddit media domain.", metadata.MessageMetadata.ExternalPostId);
                 metadata.SetupMetadata(new PostMetadata(metadata.MessageMetadata.ExternalPostId, false));
                 return metadata;
             }
@@ -38,12 +38,12 @@ namespace RedditImageBot.Processing.Filters
             var postMetadata = new PostMetadata(metadata.MessageMetadata.ExternalPostId, post.Title, post.Url);
 
             using var applicationDbContext = await _applicationDbContextFactory.CreateDbContextAsync();
-            
-            var processedPost = await applicationDbContext.Posts.FirstOrDefaultAsync(x => x.ExternalId == postMetadata.ExternalId);
+
+            var processedPost = await applicationDbContext.Posts.FirstOrDefaultAsync(x => x.ExternalId == postMetadata.ExternalPostId);
             if (processedPost != null)
             {
                 postMetadata.GeneratedImageUrl = processedPost.GeneratedImageUrl;
-                postMetadata.PostId = processedPost.Id;
+                postMetadata.InternalPostId = processedPost.Id;
             }
 
             metadata.SetupMetadata(postMetadata);

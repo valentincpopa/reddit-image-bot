@@ -6,10 +6,15 @@
     {
         public PostStateManager() : base()
         {
-            SetInitialState(PostState.NotProcessed);
+            SetCurrentState(PostState.NotProcessed);
             AddTransition(PostState.NotProcessed, PostState.InProgress);
             AddTransition(PostState.InProgress, PostState.Processed);
             AddTransition(PostState.InProgress, PostState.Error);
+        }
+
+        public void Reset()
+        {
+            SetCurrentState(PostState.NotProcessed);
         }
     }
 }

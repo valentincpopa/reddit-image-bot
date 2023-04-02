@@ -11,7 +11,7 @@ namespace RedditImageBot.Models
                 throw new ArgumentException($"'{nameof(externalId)}' cannot be null or whitespace.", nameof(externalId));
             }
 
-            ExternalId = externalId;
+            ExternalPostId = externalId;
             IsValidImage = isValidImage;
         }
 
@@ -31,8 +31,8 @@ namespace RedditImageBot.Models
             OriginalImageUrl = originalImageUrl;
         }
 
-        public int? PostId { get; set; }
-        public string ExternalId { get; private set; }
+        public int? InternalPostId { get; set; }
+        public string ExternalPostId { get; private set; }
         public bool IsValidImage { get; private set; }
         public string PostTitle { get; private set; }
         public string OriginalImageUrl { get; private set; }

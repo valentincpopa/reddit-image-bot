@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace RedditImageBot.Migrations
 {
     /// <inheritdoc />
-    public partial class Initialmigration : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,7 +22,8 @@ namespace RedditImageBot.Migrations
                     GeneratedImageUrl = table.Column<string>(type: "varchar(1024)", nullable: true),
                     Status = table.Column<short>(type: "smallint", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TimestampTz", nullable: false),
-                    ModifiedAt = table.Column<DateTime>(type: "TimestampTz", nullable: false)
+                    ModifiedAt = table.Column<DateTime>(type: "TimestampTz", nullable: false),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -36,10 +37,12 @@ namespace RedditImageBot.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ExternalId = table.Column<string>(type: "varchar(16)", nullable: false),
+                    ExternalParentId = table.Column<string>(type: "varchar(16)", nullable: false),
                     PostId = table.Column<int>(type: "integer", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "TimestampTz", nullable: false),
                     ModifiedAt = table.Column<DateTime>(type: "TimestampTz", nullable: false),
-                    Status = table.Column<short>(type: "smallint", nullable: false)
+                    Status = table.Column<short>(type: "smallint", nullable: false),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
                 {

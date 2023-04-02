@@ -62,4 +62,16 @@ namespace RedditImageBot.Models
             get => !this.IsSelf && this.IsRedditMediaDomain && !this.IsVideo;
         }
     }
+
+    [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+    public class ReplyThingWrapper
+    {
+        public Root<ReplyThing> Replies { get; set; }
+    }
+
+    [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
+    public class ReplyThing
+    {
+        public string Author { get; set; }
+    }
 }

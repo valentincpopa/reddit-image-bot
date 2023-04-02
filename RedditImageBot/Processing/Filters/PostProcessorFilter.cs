@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using RedditImageBot.Database;
 using RedditImageBot.Models;
 using RedditImageBot.Services.Abstractions;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace RedditImageBot.Processing.Filters
@@ -32,18 +33,27 @@ namespace RedditImageBot.Processing.Filters
             {
                 if (metadata.PostMetadata.IsValidImage)
                 {
-                    _logger.LogInformation("Generating the image for {ExternalPostId}..", metadata.PostMetadata.ExternalId);
+                    _logger.LogInformation("Generating the image for {ExternalPostId}..", metadata.PostMetadata.ExternalPostId);
                     using var generatedImage = await _imageService.GenerateImageAsync(metadata.PostMetadata.PostTitle, metadata.PostMetadata.OriginalImageUrl);
                     metadata.PostMetadata.GeneratedImageUrl = await _imgurService.UploadImageAsync(generatedImage);
                 }
 
                 using var applicationDbContext = await _applicationDbContextFactory.CreateDbContextAsync();
+                var processedPost = applicationDbContext.Posts.FirstOrDefault(x => x.Id == metadata.PostMetadata.InternalPostId);
 
-                var processedPost = new Post(metadata.PostMetadata.ExternalId, metadata.PostMetadata.GeneratedImageUrl);
-                await applicationDbContext.Posts.AddAsync(processedPost);
+                if (processedPost != null)
+                {
+                    processedPost.SetGeneratedImageUrl(metadata.PostMetadata.GeneratedImageUrl);
+                }
+                else
+                {
+                    processedPost = new Post(metadata.PostMetadata.ExternalPostId, metadata.PostMetadata.GeneratedImageUrl);
+                    await applicationDbContext.Posts.AddAsync(processedPost);
+                }
+
                 await applicationDbContext.SaveChangesAsync();
 
-                metadata.PostMetadata.PostId = processedPost.Id;
+                metadata.PostMetadata.InternalPostId = processedPost.Id;
             }
 
             return metadata;

@@ -26,9 +26,9 @@ namespace RedditImageBot.Models
                 throw new ArgumentNullException(nameof(postMetadata));
             }
 
-            if (postMetadata.ExternalId != MessageMetadata.ExternalPostId)
+            if (postMetadata.ExternalPostId != MessageMetadata.ExternalPostId)
             {
-                throw new MetadataException($"The external id of the post referenced in the post metadata ({postMetadata.ExternalId})" +
+                throw new MetadataException($"The external id of the post referenced in the post metadata ({postMetadata.ExternalPostId})" +
                     $"should correspond to the external id of the post referenced in the message metadata ({MessageMetadata.ExternalPostId}).");
             }
 

@@ -5,6 +5,7 @@ using RedditImageBot.Database;
 using RedditImageBot.Services.Abstractions;
 using RedditImageBot.Services.WebAgents;
 using RedditImageBot.Utilities;
+using RedditImageBot.Utilities.Configurations;
 
 namespace RedditImageBot.Services
 {
@@ -22,6 +23,7 @@ namespace RedditImageBot.Services
             services.Configure<ImgurWebAgentConfiguration>(configuration.GetSection(nameof(ImgurWebAgentConfiguration)));
             services.Configure<ImageConfiguration>(configuration.GetSection(nameof(ImageConfiguration)));
             services.Configure<ThreadingConfiguration>(configuration.GetSection(nameof(ThreadingConfiguration)));
+            services.Configure<RedditAccountConfiguration>(configuration.GetSection(nameof(RedditAccountConfiguration)));
 
             services.AddSingleton<RedditWebAgent>();
             services.AddScoped<IRedditService, RedditService>();

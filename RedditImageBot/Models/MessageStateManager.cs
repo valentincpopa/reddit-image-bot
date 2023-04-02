@@ -6,10 +6,15 @@
     {
         public MessageStateManager() : base()
         {
-            SetInitialState(MessageState.NotProcessed);
+            SetCurrentState(MessageState.NotProcessed);
             AddTransition(MessageState.NotProcessed, MessageState.InProgress);
             AddTransition(MessageState.InProgress, MessageState.Processed);
             AddTransition(MessageState.InProgress, MessageState.Error);
+        }
+
+        public void Reset()
+        {
+            SetCurrentState(MessageState.NotProcessed);
         }
     }
 }

@@ -28,8 +28,7 @@ namespace RedditImageBot.Services
             _logger.LogInformation($"StartAsync has been called...");
 
             await ExecutePreProcessingActions();
-            await Process();
-
+            _ = Process();
             //_timer = new Timer(async (stateInfo) => await Process(), null, TimeSpan.Zero, TimeSpan.FromSeconds(15));
         }
 
@@ -58,7 +57,7 @@ namespace RedditImageBot.Services
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, "Something went wrong during the pipeline processing.");
+                _logger.LogError(exception, "The pipeline processing stopped due to an unexpected error.");
             }
         }
 

@@ -26,9 +26,9 @@ namespace RedditImageBot.Models
             StateTransitions.Add(stateTransition);
         }
 
-        public void SetInitialState(T initialState)
+        public void SetCurrentState(T currentState)
         {
-            CurrentState = initialState;
+            CurrentState = currentState;
         }
 
         public void ChangeState(T destination)

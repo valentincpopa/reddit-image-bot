@@ -12,8 +12,8 @@ using RedditImageBot.Database;
 namespace RedditImageBot.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230311180255_Initial migration")]
-    partial class Initialmigration
+    [Migration("20230324174704_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -40,6 +40,10 @@ namespace RedditImageBot.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(16)");
 
+                    b.Property<string>("ExternalParentId")
+                        .IsRequired()
+                        .HasColumnType("varchar(16)");
+
                     b.Property<DateTime>("ModifiedAt")
                         .HasColumnType("TimestampTz");
 
@@ -48,6 +52,12 @@ namespace RedditImageBot.Migrations
 
                     b.Property<short>("Status")
                         .HasColumnType("smallint");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 
@@ -79,6 +89,12 @@ namespace RedditImageBot.Migrations
 
                     b.Property<short>("Status")
                         .HasColumnType("smallint");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 

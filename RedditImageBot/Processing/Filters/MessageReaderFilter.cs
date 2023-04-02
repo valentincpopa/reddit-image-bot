@@ -41,19 +41,30 @@ namespace RedditImageBot.Processing.Filters
                 .Where(x => messagesExternalIds.Contains(x.ExternalId))
                 .Select(x => x.ExternalId)
                 .ToListAsync();
-            var unprocessedMessages = _mapper.Map<List<Message>>(inboxMessages.Where(x => !databaseMessagesIds.Contains(x.Name)));
 
-            await applicationDbContext.Messages.AddRangeAsync(unprocessedMessages);
+            var messagesToInsert = _mapper.Map<List<Message>>(inboxMessages.Where(x => !databaseMessagesIds.Contains(x.Name)));
+            await applicationDbContext.Messages.AddRangeAsync(messagesToInsert);
             await applicationDbContext.SaveChangesAsync();
 
-            var metadataCollection = new List<Metadata>();
-            foreach (var unprocessedMessage in unprocessedMessages)
+            if (inboxMessages.Any())
             {
-                var metadata = new Metadata(_mapper.Map<MessageMetadata>(unprocessedMessage));
-                metadata.MessageMetadata.ExternalPostId = inboxMessages.First(x => x.Name == metadata.MessageMetadata.ExternalId).ParentId;
-                metadataCollection.Add(metadata);
+                await _redditService.ReadMessagesAsync(string.Join(',', inboxMessages.Select(x => x.Name)));
             }
-            
+
+            var unprocessedMessages = await applicationDbContext.Messages
+                .Where(x => x.Status == MessageState.NotProcessed)
+                .OrderBy(x => x.CreatedAt)
+                .Take(25)
+                .ToListAsync();
+
+            foreach (var message in unprocessedMessages)
+            {
+                message.ChangeState(MessageState.InProgress);
+            }
+            await applicationDbContext.SaveChangesAsync();
+
+            var metadataCollection = unprocessedMessages.Select(x => new Metadata(_mapper.Map<MessageMetadata>(x)));
+
             return metadataCollection;
         }
     }

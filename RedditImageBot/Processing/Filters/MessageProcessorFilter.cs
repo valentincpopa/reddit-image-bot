@@ -6,6 +6,7 @@ using RedditImageBot.Models;
 using RedditImageBot.Services.Abstractions;
 using RedditImageBot.Utilities.Configurations;
 using RedditImageBot.Utilities.Exceptions;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace RedditImageBot.Processing.Filters
@@ -33,34 +34,36 @@ namespace RedditImageBot.Processing.Filters
         {
             _logger.LogInformation("Responding to the message with message id: {MessageId}..", metadata.MessageMetadata.ExternalCommentId);
 
-            if (!metadata.MessageMetadata.MessageId.HasValue)
+            if (!metadata.MessageMetadata.InternalMessageId.HasValue)
             {
                 throw new FilterProcessingException("The provided metadata doesn't contain the required information (messageId).");
             }
 
             using var applicationDbContext = await _applicationDbContextFactory.CreateDbContextAsync();
 
-            var messageToUpdate = await applicationDbContext.Messages.FirstOrDefaultAsync(x => x.Id == metadata.MessageMetadata.MessageId);
+            var messageToUpdate = await applicationDbContext.Messages.FirstOrDefaultAsync(x => x.Id == metadata.MessageMetadata.InternalMessageId);
             messageToUpdate.ChangeState(MessageState.Processed);
 
-            if (!metadata.PostMetadata.PostId.HasValue)
+            if (!metadata.PostMetadata.InternalPostId.HasValue)
             {
                 throw new FilterProcessingException("The provided metadata doesn't contain the required information (postId).");
             }
 
-            messageToUpdate.PostId = metadata.PostMetadata.PostId;
-            var postToUpdate = await applicationDbContext.Posts.FirstOrDefaultAsync(x => x.Id == metadata.PostMetadata.PostId);
-            postToUpdate.ChangeState(PostState.Processed);
+            messageToUpdate.PostId = metadata.PostMetadata.InternalPostId;
 
             var responseMessage = metadata.PostMetadata.IsValidImage ?
                  $"The generated image can be found here: {metadata.PostMetadata.GeneratedImageUrl}.\n\n" :
                  $"This post does not represent a valid image that I can process.\n\n";
             responseMessage = responseMessage +
                 $"*I am a bot, and this action was performed automatically. " +
-                $"Please [contact the creator of this bot](/message/compose/?to=/u/{_options.Username}) if you have any questions or concerns.*";
+                $"Please [contact the creator of this bot](/message/compose/?to=/u/{_options.CreatorUsername}) if you have any questions or concerns.*";
 
-            await _redditService.ReplyAsync(metadata.MessageMetadata.ExternalCommentId, responseMessage);
-            await _redditService.ReadMessageAsync(metadata.MessageMetadata.ExternalId);
+            var repliesAuthors = await _redditService.GetCommentRepliesAuthorsAsync(metadata.PostMetadata.ExternalPostId, metadata.MessageMetadata.ExternalCommentId);
+
+            if (!repliesAuthors.Any(x => x == _options.BotUsername))
+            {
+                await _redditService.ReplyAsync(metadata.MessageMetadata.ExternalCommentId, responseMessage);
+            }
 
             await applicationDbContext.SaveChangesAsync();
 
