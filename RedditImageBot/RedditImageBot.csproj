@@ -20,10 +20,23 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NLog" Version="5.1.2" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="5.2.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.3" />
+    <PackageReference Include="OpenTelemetry" Version="1.4.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.4.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.4.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.4.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol.Logs" Version="1.4.0-rc.4" />
+    <PackageReference Include="OpenTelemetry.Extensions" Version="1.0.0-beta.4" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.4.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.0.0-beta.6" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.0.0-rc9.14" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.0.0" />
     <PackageReference Include="Polly" Version="7.2.3" />
+    <PackageReference Include="Serilog" Version="2.12.0" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="5.0.1" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="3.4.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="SixLabors.Fonts" Version="1.0.0-beta0013" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.2" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta11" />
@@ -36,9 +49,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="appsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="NLog.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="opensans.ttf">

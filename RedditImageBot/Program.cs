@@ -1,13 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using RedditImageBot.Services;
-using NLog.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
-using AutoMapper;
-using RedditImageBot.Models;
-using Microsoft.Extensions.Http;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace RedditImageBot
 {
@@ -22,15 +15,10 @@ namespace RedditImageBot
             Host.CreateDefaultBuilder(args)
             .ConfigureServices((hostContext, services) =>
             {
-                services.AddHostedService<HostedService>();
+                services.ConfigureTelemetry(hostContext.Configuration);
                 services.ConfigureServices(hostContext.Configuration);
+                services.AddHostedService<HostedService>();
                 services.AddAutoMapper(typeof(Program).Assembly);
-                //services.RemoveAll<IHttpMessageHandlerBuilderFilter>();
-            })
-            .ConfigureLogging(logging =>
-            {
-                logging.ClearProviders();
-                logging.AddNLog();
             });
     }
 }

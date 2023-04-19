@@ -3,7 +3,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RedditImageBot.Processing.Pipelines;
 using RedditImageBot.Services.WebAgents;
+using RedditImageBot.Utilities.Common;
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,6 +17,8 @@ namespace RedditImageBot.Services
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<HostedService> _logger;
         private Timer _timer;
+
+        private static readonly string TypeFullName = typeof(HostedService).FullName;
 
         public HostedService(IServiceScopeFactory serviceScopeFactory, ILoggerFactory loggerFactory)
         {
@@ -29,6 +33,7 @@ namespace RedditImageBot.Services
 
             await ExecutePreProcessingActions();
             _ = Process();
+
             //_timer = new Timer(async (stateInfo) => await Process(), null, TimeSpan.Zero, TimeSpan.FromSeconds(15));
         }
 
@@ -41,6 +46,8 @@ namespace RedditImageBot.Services
 
         public async Task Process()
         {
+            using var activity = ActivitySources.RedditImageBot.StartActivity(CreateActivityName());
+
             try
             {
                 using var scope = _serviceScopeFactory.CreateScope();
@@ -67,6 +74,11 @@ namespace RedditImageBot.Services
             _timer.Change(Timeout.Infinite, 0);
             _timer.Dispose();
             return Task.CompletedTask;
+        }
+
+        private static string CreateActivityName([CallerMemberName] string callerMemberName = "")
+        {
+            return $"{TypeFullName}.{callerMemberName}";
         }
     }
 }
