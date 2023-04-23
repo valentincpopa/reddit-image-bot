@@ -3,6 +3,8 @@ using Microsoft.Extensions.Logging;
 using RedditImageBot.Database;
 using RedditImageBot.Models;
 using RedditImageBot.Services.Abstractions;
+using RedditImageBot.Utilities.Common;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace RedditImageBot.Processing.Filters
@@ -12,6 +14,8 @@ namespace RedditImageBot.Processing.Filters
         private readonly IDbContextFactory<ApplicationDbContext> _applicationDbContextFactory;
         private readonly IRedditService _redditService;
         private readonly ILogger<PostValidatorFilter> _logger;
+
+        private static readonly string _typeFullName = typeof(PostValidatorFilter).FullName;
 
         public PostValidatorFilter(
             IDbContextFactory<ApplicationDbContext> applicationDbContextFactory,
@@ -25,6 +29,8 @@ namespace RedditImageBot.Processing.Filters
 
         public async Task<Metadata> Process(Metadata metadata)
         {
+            using var activity = ActivitySources.RedditImageBot.StartActivity(CreateActivityName());
+
             _logger.LogInformation("Started processing the message identified by the following external id: {ExternalMessageId}", metadata.MessageMetadata.ExternalMessageId);
 
             var post = await _redditService.GetPostAsync(metadata.MessageMetadata.ExternalPostId);
@@ -48,6 +54,11 @@ namespace RedditImageBot.Processing.Filters
 
             metadata.SetupMetadata(postMetadata);
             return metadata;
+        }
+
+        private static string CreateActivityName([CallerMemberName] string callerMemberName = "")
+        {
+            return $"{_typeFullName}.{callerMemberName}";
         }
     }
 }

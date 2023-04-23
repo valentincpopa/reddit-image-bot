@@ -5,6 +5,6 @@ namespace RedditImageBot.Services.Abstractions
 {
     public interface IImageService
     {
-        Task<MemoryStream> GenerateImageAsync(string title, string imageUri);
+        Task<Stream> GenerateImageAsync(string text, string imageUri);
     }
 }

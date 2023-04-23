@@ -11,20 +11,20 @@ using System.Threading.Tasks;
 
 namespace RedditImageBot.Services
 {
-    public class HostedService : IHostedService
+    public class BotProcessingService : IHostedService
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly ILogger<HostedService> _logger;
+        private readonly ILogger<BotProcessingService> _logger;
         private Timer _timer;
 
-        private static readonly string TypeFullName = typeof(HostedService).FullName;
+        private static readonly string _typeFullName = typeof(BotProcessingService).FullName;
 
-        public HostedService(IServiceScopeFactory serviceScopeFactory, ILoggerFactory loggerFactory)
+        public BotProcessingService(IServiceScopeFactory serviceScopeFactory, ILoggerFactory loggerFactory)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _loggerFactory = loggerFactory;
-            _logger = loggerFactory.CreateLogger<HostedService>();
+            _logger = loggerFactory.CreateLogger<BotProcessingService>();
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -78,7 +78,7 @@ namespace RedditImageBot.Services
 
         private static string CreateActivityName([CallerMemberName] string callerMemberName = "")
         {
-            return $"{TypeFullName}.{callerMemberName}";
+            return $"{_typeFullName}.{callerMemberName}";
         }
     }
 }

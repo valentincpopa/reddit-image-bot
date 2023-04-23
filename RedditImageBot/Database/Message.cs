@@ -1,6 +1,5 @@
 ﻿using RedditImageBot.Models;
 using System;
-using System.Net.NetworkInformation;
 
 namespace RedditImageBot.Database
 {
@@ -42,6 +41,11 @@ namespace RedditImageBot.Database
             MessageStateManager.ChangeState(newState);
             _status = MessageStateManager.CurrentState;
             ModifiedAt = DateTime.UtcNow;
+        }
+
+        public void ResetState()
+        {
+            Status = MessageState.NotProcessed;
         }
     }
 }

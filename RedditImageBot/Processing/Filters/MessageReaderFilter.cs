@@ -4,9 +4,11 @@ using Microsoft.Extensions.Logging;
 using RedditImageBot.Database;
 using RedditImageBot.Models;
 using RedditImageBot.Services.Abstractions;
+using RedditImageBot.Utilities.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace RedditImageBot.Processing.Filters
@@ -17,6 +19,8 @@ namespace RedditImageBot.Processing.Filters
         private readonly ILogger<MessageReaderFilter> _logger;
         private readonly IRedditService _redditService;
         private readonly IMapper _mapper;
+
+        private static readonly string _typeFullName = typeof(MessageReaderFilter).FullName;
 
         public MessageReaderFilter(
             IDbContextFactory<ApplicationDbContext> applicationDbContextFactory,
@@ -32,6 +36,8 @@ namespace RedditImageBot.Processing.Filters
 
         public async Task<IEnumerable<Metadata>> Process(string _)
         {
+            using var activity = ActivitySources.RedditImageBot.StartActivity(CreateActivityName());
+
             _logger.LogInformation("Started processing unread messages..");
 
             var inboxMessages = await _redditService.GetUnreadMessagesAsync();
@@ -66,6 +72,11 @@ namespace RedditImageBot.Processing.Filters
             var metadataCollection = unprocessedMessages.Select(x => new Metadata(_mapper.Map<MessageMetadata>(x)));
 
             return metadataCollection;
+        }
+
+        private static string CreateActivityName([CallerMemberName] string callerMemberName = "")
+        {
+            return $"{_typeFullName}.{callerMemberName}";
         }
     }
 }

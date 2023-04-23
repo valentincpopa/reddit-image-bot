@@ -2,8 +2,11 @@
 using Microsoft.Extensions.Logging;
 using RedditImageBot.Database;
 using RedditImageBot.Models;
+using RedditImageBot.Services;
 using RedditImageBot.Services.Abstractions;
+using RedditImageBot.Utilities.Common;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace RedditImageBot.Processing.Filters
@@ -14,6 +17,8 @@ namespace RedditImageBot.Processing.Filters
         private readonly ILogger<PostProcessorFilter> _logger;
         private readonly IImageService _imageService;
         private readonly IImgurService _imgurService;
+
+        private static readonly string _typeFullName = typeof(PostProcessorFilter).FullName;
 
         public PostProcessorFilter(
             IDbContextFactory<ApplicationDbContext> applicationDbContextFactory,
@@ -29,6 +34,8 @@ namespace RedditImageBot.Processing.Filters
 
         public async Task<Metadata> Process(Metadata metadata)
         {
+            using var activity = ActivitySources.RedditImageBot.StartActivity(CreateActivityName());
+
             if (!metadata.PostMetadata.HasGeneratedImageUrl)
             {
                 if (metadata.PostMetadata.IsValidImage)
@@ -59,5 +66,9 @@ namespace RedditImageBot.Processing.Filters
             return metadata;
         }
 
+        private static string CreateActivityName([CallerMemberName] string callerMemberName = "")
+        {
+            return $"{_typeFullName}.{callerMemberName}";
+        }
     }
 }

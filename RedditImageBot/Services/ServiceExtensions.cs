@@ -7,6 +7,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using RedditImageBot.Database;
 using RedditImageBot.Services.Abstractions;
+using RedditImageBot.Services.ImageProcessors;
 using RedditImageBot.Services.WebAgents;
 using RedditImageBot.Utilities;
 using RedditImageBot.Utilities.Common;
@@ -30,12 +31,16 @@ namespace RedditImageBot.Services
             services.Configure<ImgurWebAgentConfiguration>(configuration.GetSection(nameof(ImgurWebAgentConfiguration)));
             services.Configure<ImageConfiguration>(configuration.GetSection(nameof(ImageConfiguration)));
             services.Configure<ThreadingConfiguration>(configuration.GetSection(nameof(ThreadingConfiguration)));
-            services.Configure<RedditAccountConfiguration>(configuration.GetSection(nameof(RedditAccountConfiguration)));
+            services.Configure<BotInformationConfiguration>(configuration.GetSection(nameof(BotInformationConfiguration)));
 
             services.AddSingleton<RedditWebAgent>();
             services.AddScoped<IRedditService, RedditService>();
             services.AddScoped<IImgurService, ImgurService>();
             services.AddScoped<IImageService, ImageService>();
+
+            services.AddScoped<FramelessImageProcessor>();
+            services.AddScoped<GifImageProcessor>();
+            services.AddScoped<IImageProcessorFactory, ImageProcessorFactory>();
         }
 
         public static void ConfigureTelemetry(this IServiceCollection services, IConfiguration configuration)

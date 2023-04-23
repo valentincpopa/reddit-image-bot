@@ -135,7 +135,7 @@ namespace RedditImageBot.Services
             var root = JsonConvert.DeserializeObject<List<Root<ReplyThingWrapper>>>(content);
 
             return root.Last().Data.Children
-                .SelectMany(x => x.Data.Replies.Data.Children.Select(x => x.Data.Author))
+                .SelectMany(x => x.Data?.Replies?.Data.Children.Select(x => x.Data?.Author) ?? new List<string>())?
                 .ToList();
         }
     }

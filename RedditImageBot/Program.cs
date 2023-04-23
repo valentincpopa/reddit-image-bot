@@ -17,7 +17,8 @@ namespace RedditImageBot
             {
                 services.ConfigureTelemetry(hostContext.Configuration);
                 services.ConfigureServices(hostContext.Configuration);
-                services.AddHostedService<HostedService>();
+                services.AddHostedService<BotProcessingService>();
+                services.AddHostedService<BotMessageRescheduler>();
                 services.AddAutoMapper(typeof(Program).Assembly);
             });
     }

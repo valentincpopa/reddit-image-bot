@@ -55,7 +55,7 @@ namespace RedditImageBot.Processing.Pipelines
                 scope.ServiceProvider.GetService<IDbContextFactory<ApplicationDbContext>>(),
                 scope.ServiceProvider.GetService<ILogger<MessageProcessorFilter>>(),
                 scope.ServiceProvider.GetService<IRedditService>(),
-                scope.ServiceProvider.GetService<IOptions<RedditAccountConfiguration>>());
+                scope.ServiceProvider.GetService<IOptions<BotInformationConfiguration>>());
 
             pipeline
                 .AddFilter(

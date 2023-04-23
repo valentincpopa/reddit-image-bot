@@ -4,9 +4,11 @@ using Microsoft.Extensions.Options;
 using RedditImageBot.Database;
 using RedditImageBot.Models;
 using RedditImageBot.Services.Abstractions;
+using RedditImageBot.Utilities.Common;
 using RedditImageBot.Utilities.Configurations;
 using RedditImageBot.Utilities.Exceptions;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace RedditImageBot.Processing.Filters
@@ -16,13 +18,15 @@ namespace RedditImageBot.Processing.Filters
         private readonly IDbContextFactory<ApplicationDbContext> _applicationDbContextFactory;
         private readonly ILogger<MessageProcessorFilter> _logger;
         private readonly IRedditService _redditService;
-        private readonly RedditAccountConfiguration _options;
+        private readonly BotInformationConfiguration _options;
+
+        private static readonly string _typeFullName = typeof(MessageProcessorFilter).FullName;
 
         public MessageProcessorFilter(
             IDbContextFactory<ApplicationDbContext> applicationDbContextFactory,
             ILogger<MessageProcessorFilter> logger,
             IRedditService redditService,
-            IOptions<RedditAccountConfiguration> options)
+            IOptions<BotInformationConfiguration> options)
         {
             _applicationDbContextFactory = applicationDbContextFactory;
             _logger = logger;
@@ -32,6 +36,8 @@ namespace RedditImageBot.Processing.Filters
 
         public async Task<Metadata> Process(Metadata metadata)
         {
+            using var activity = ActivitySources.RedditImageBot.StartActivity(CreateActivityName());
+
             _logger.LogInformation("Responding to the message with message id: {MessageId}..", metadata.MessageMetadata.ExternalCommentId);
 
             if (!metadata.MessageMetadata.InternalMessageId.HasValue)
@@ -52,11 +58,12 @@ namespace RedditImageBot.Processing.Filters
             messageToUpdate.PostId = metadata.PostMetadata.InternalPostId;
 
             var responseMessage = metadata.PostMetadata.IsValidImage ?
-                 $"The generated image can be found here: {metadata.PostMetadata.GeneratedImageUrl}.\n\n" :
+                 $"The generated image can be found [here]({metadata.PostMetadata.GeneratedImageUrl}).\n\n" :
                  $"This post does not represent a valid image that I can process.\n\n";
             responseMessage = responseMessage +
-                $"*I am a bot, and this action was performed automatically. " +
-                $"Please [contact the creator of this bot](/message/compose/?to=/u/{_options.CreatorUsername}) if you have any questions or concerns.*";
+                $"*^(I)* *^(am)* *^(a)* *^(bot)* *^(and)* *^(this)* *^(action)* *^(was)* *^(performed)* *^(automatically.)* " +
+                $"*^(Please)* [*^(contact the creator of this bot)*](/message/compose/?to=/u/{_options.CreatorUsername}) *^(if)* *^(you)* *^(have)* *^(any)* *^(questions)* *^(or)* *^(concerns.)* " +
+                $"*^(You)* *^(can)* *^(find)* *^(the)* *^(source)* *^(code)* [*^(here)*]({_options.SourceCodeUrl})*^(.)*";
 
             var repliesAuthors = await _redditService.GetCommentRepliesAuthorsAsync(metadata.PostMetadata.ExternalPostId, metadata.MessageMetadata.ExternalCommentId);
 
@@ -68,6 +75,11 @@ namespace RedditImageBot.Processing.Filters
             await applicationDbContext.SaveChangesAsync();
 
             return metadata;
+        }
+
+        private static string CreateActivityName([CallerMemberName] string callerMemberName = "")
+        {
+            return $"{_typeFullName}.{callerMemberName}";
         }
     }
 }

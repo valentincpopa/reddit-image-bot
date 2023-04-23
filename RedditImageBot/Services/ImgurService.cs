@@ -24,23 +24,22 @@ namespace RedditImageBot.Services
             _logger = logger;
         }
 
-        public async Task<string> UploadImageAsync(MemoryStream memoryStream)
+        public async Task<string> UploadImageAsync(Stream stream)
         {
             var apiClient = new ApiClient(_options.ClientId);
             var httpClient = new HttpClient();
 
             var imageEndpoint = new ImageEndpoint(apiClient, httpClient);
             var retryPolicy = GetRetryPolicy();
-            var imageLink = await retryPolicy.ExecuteAsync(() => UploadImageAsync(imageEndpoint, memoryStream));
+            var imageLink = await retryPolicy.ExecuteAsync(() => UploadImageAsync(imageEndpoint, stream));
 
-            await memoryStream.DisposeAsync();
             return imageLink;
         }
 
-        private static async Task<string> UploadImageAsync(ImageEndpoint imageEndpoint, MemoryStream memoryStream)
+        private static async Task<string> UploadImageAsync(ImageEndpoint imageEndpoint, Stream stream)
         {
-            memoryStream.Seek(0, SeekOrigin.Begin);
-            var imgurImage = await imageEndpoint.UploadImageAsync(memoryStream);
+            stream.Seek(0, SeekOrigin.Begin);
+            var imgurImage = await imageEndpoint.UploadImageAsync(stream);
             return imgurImage.Link;
         }
 
