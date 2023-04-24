@@ -14,6 +14,7 @@ namespace RedditImageBot.Database.Configurations
             builder.Property(x => x.Status).HasField("_status").HasColumnType("smallint").UsePropertyAccessMode(PropertyAccessMode.Property).IsRequired();
             builder.Property(x => x.CreatedAt).HasColumnType("TimestampTz").IsRequired();
             builder.Property(x => x.ModifiedAt).HasColumnType("TimestampTz").IsRequired();
+            builder.Property(x => x.ProcessingCount).HasColumnType("smallint");
             builder.Property(b => b.Version).IsRowVersion();
 
             builder.Ignore(x => x.MessageStateManager);

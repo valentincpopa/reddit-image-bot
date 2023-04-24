@@ -9,6 +9,7 @@ namespace RedditImageBot.Database
 
         public Message()
         {
+            ProcessingCount = 1;
             CreatedAt = DateTime.UtcNow;
             ModifiedAt = DateTime.UtcNow;
             MessageStateManager = new MessageStateManager();
@@ -21,6 +22,7 @@ namespace RedditImageBot.Database
         public Post Post { get; }
         public DateTime CreatedAt { get; }
         public DateTime ModifiedAt { get; private set; }
+        public int? ProcessingCount { get; set; }
         public MessageState Status
         {
             get

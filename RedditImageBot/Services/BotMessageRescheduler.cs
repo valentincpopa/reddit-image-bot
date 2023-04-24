@@ -43,14 +43,20 @@ namespace RedditImageBot.Services
 
             var datetimeToCompare = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(30));
 
-            var messagesWithErrors = applicationDbContext.Messages
+            var stuckMessages = applicationDbContext.Messages
                 .Where(x =>
-                    (x.Status == MessageState.Error || x.Status == MessageState.InProgress)
+                    (x.Status == MessageState.InProgress)
                     && x.ModifiedAt < datetimeToCompare);
 
-            foreach (var message in messagesWithErrors)
+            foreach (var message in stuckMessages.Where(x => x.ProcessingCount < 3))
             {
                 message.ResetState();
+                message.ProcessingCount++;
+            }
+
+            foreach (var message in stuckMessages.Where(x => x.ProcessingCount >= 3))
+            {
+                message.ChangeState(MessageState.Error);
             }
 
             await applicationDbContext.SaveChangesAsync();
