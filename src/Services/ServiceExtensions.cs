@@ -13,7 +13,6 @@ using RedditImageBot.Utilities;
 using RedditImageBot.Utilities.Common;
 using RedditImageBot.Utilities.Configurations;
 using Serilog;
-using System;
 
 namespace RedditImageBot.Services
 {
@@ -76,7 +75,7 @@ namespace RedditImageBot.Services
                             .AddService(ActivitySources.RedditImageBot.Name))
                         .AddHttpClientInstrumentation()
                         .AddEntityFrameworkCoreInstrumentation()
-                        .AddOtlpExporter(options => options.Endpoint = new Uri(otlpExporterConfiguration.Endpoint));
+                        .AddOtlpExporter();
                  })
                  .WithMetrics(metricsProviderBuilder =>
                  {
@@ -84,7 +83,9 @@ namespace RedditImageBot.Services
                         .ConfigureResource(resource => resource
                             .AddService(ActivitySources.RedditImageBot.Name))
                         .AddHttpClientInstrumentation()
-                        .AddRuntimeInstrumentation();
+                        .AddRuntimeInstrumentation()
+                        .AddProcessInstrumentation()
+                        .AddOtlpExporter();
                  });
         }
 

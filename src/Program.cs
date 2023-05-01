@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using RedditImageBot.Database;
 using RedditImageBot.Services;
 
 namespace RedditImageBot
@@ -8,7 +10,15 @@ namespace RedditImageBot
     {
         static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            var host = CreateHostBuilder(args).Build();
+
+            using (var scope = host.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                db.Database.Migrate();
+            }
+
+            host.Run();
         }
 
         static IHostBuilder CreateHostBuilder(string[] args) =>

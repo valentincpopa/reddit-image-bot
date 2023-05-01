@@ -39,27 +39,34 @@ namespace RedditImageBot.Services
         {
             using var activity = ActivitySources.RedditImageBot.StartActivity(CreateActivityName());
 
-            var applicationDbContext = _applicationDbContextFactory.CreateDbContext();
-
-            var datetimeToCompare = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(30));
-
-            var stuckMessages = applicationDbContext.Messages
-                .Where(x =>
-                    (x.Status == MessageState.InProgress)
-                    && x.ModifiedAt < datetimeToCompare);
-
-            foreach (var message in stuckMessages.Where(x => x.ProcessingCount < 3))
+            try
             {
-                message.ResetState();
-                message.ProcessingCount++;
-            }
+                var applicationDbContext = _applicationDbContextFactory.CreateDbContext();
 
-            foreach (var message in stuckMessages.Where(x => x.ProcessingCount >= 3))
+                var datetimeToCompare = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(30));
+
+                var stuckMessages = applicationDbContext.Messages
+                    .Where(x =>
+                        (x.Status == MessageState.InProgress)
+                        && x.ModifiedAt < datetimeToCompare);
+
+                foreach (var message in stuckMessages.Where(x => x.ProcessingCount < 3))
+                {
+                    message.ResetState();
+                    message.ProcessingCount++;
+                }
+
+                foreach (var message in stuckMessages.Where(x => x.ProcessingCount >= 3))
+                {
+                    message.ChangeState(MessageState.Error);
+                }
+
+                await applicationDbContext.SaveChangesAsync();
+            }
+            catch (Exception exception)
             {
-                message.ChangeState(MessageState.Error);
+                _logger.LogError(exception, "Something went wrong during the rescheduling of the stuck messages.");
             }
-
-            await applicationDbContext.SaveChangesAsync();
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

@@ -32,9 +32,8 @@ namespace RedditImageBot.Services
             _logger.LogInformation($"StartAsync has been called...");
 
             await ExecutePreProcessingActions();
-            _ = Process();
 
-            //_timer = new Timer(async (stateInfo) => await Process(), null, TimeSpan.Zero, TimeSpan.FromSeconds(15));
+            _timer = new Timer(async (stateInfo) => await Process(), null, TimeSpan.Zero, TimeSpan.FromSeconds(15));
         }
 
         private async Task ExecutePreProcessingActions()
