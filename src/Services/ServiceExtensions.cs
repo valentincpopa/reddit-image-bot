@@ -13,6 +13,7 @@ using RedditImageBot.Utilities;
 using RedditImageBot.Utilities.Common;
 using RedditImageBot.Utilities.Configurations;
 using Serilog;
+using System;
 
 namespace RedditImageBot.Services
 {
@@ -63,7 +64,7 @@ namespace RedditImageBot.Services
                     loggingBuilder.AddSerilog(logger: serilogLogger, dispose: true);
                 });
 
-            var otlpExporterConfiguration = configuration.GetOtlpExporterConfiguration();
+            var otlpCollectorConfiguration = configuration.GetOtlpCollectorConfiguration();
 
             services
                  .AddOpenTelemetry()
@@ -75,7 +76,7 @@ namespace RedditImageBot.Services
                             .AddService(ActivitySources.RedditImageBot.Name))
                         .AddHttpClientInstrumentation()
                         .AddEntityFrameworkCoreInstrumentation()
-                        .AddOtlpExporter();
+                        .AddOtlpExporter(options => options.Endpoint = new Uri(otlpCollectorConfiguration.Endpoint));
                  })
                  .WithMetrics(metricsProviderBuilder =>
                  {
@@ -85,15 +86,15 @@ namespace RedditImageBot.Services
                         .AddHttpClientInstrumentation()
                         .AddRuntimeInstrumentation()
                         .AddProcessInstrumentation()
-                        .AddOtlpExporter();
+                        .AddOtlpExporter(options => options.Endpoint = new Uri(otlpCollectorConfiguration.Endpoint));
                  });
         }
 
-        private static OtlpExporterConfiguration GetOtlpExporterConfiguration(this IConfiguration configuration)
+        private static OtlpCollectorConfiguration GetOtlpCollectorConfiguration(this IConfiguration configuration)
         {
-            var otlpExporterConfiguration = new OtlpExporterConfiguration();
-            configuration.Bind(nameof(OtlpExporterConfiguration), otlpExporterConfiguration);
-            return otlpExporterConfiguration;
+            var otlpCollectorConfiguration = new OtlpCollectorConfiguration();
+            configuration.Bind(nameof(OtlpCollectorConfiguration), otlpCollectorConfiguration);
+            return otlpCollectorConfiguration;
         }
     }
 }

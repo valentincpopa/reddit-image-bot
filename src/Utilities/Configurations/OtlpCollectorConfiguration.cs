@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RedditImageBot.Utilities.Configurations
 {
-    public class OtlpExporterConfiguration
+    public class OtlpCollectorConfiguration
     {
         public string Endpoint { get; set; }
     }
