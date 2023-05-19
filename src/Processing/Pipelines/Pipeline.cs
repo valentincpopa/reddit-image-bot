@@ -49,13 +49,12 @@ namespace RedditImageBot.Processing.Pipelines
 
         public async Task Complete()
         {
-            var firstBlock = _dataflowBlocks.First();
-            firstBlock.Complete();
-
             var lastBlock = _dataflowBlocks.Last() as ISourceBlock<TOutput>;
-
             var actionBlock = new ActionBlock<TOutput>((x) => { });
             lastBlock.LinkTo(actionBlock, new DataflowLinkOptions { PropagateCompletion = true });
+
+            var firstBlock = _dataflowBlocks.First();
+            firstBlock.Complete();
 
             await actionBlock.Completion;
         }

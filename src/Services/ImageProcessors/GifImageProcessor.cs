@@ -34,13 +34,14 @@ namespace RedditImageBot.Services.ImageProcessors
 
             for (int i = 0; i < imageToProcess.Frames.Count; i++)
             {
+                using var imageToProcessFrame = imageToProcess.Frames.CloneFrame(i);
                 using var image = new Image<Rgba32>(imageToProcess.Width, (int)fontRectangle.Height + imageToProcess.Height);
                 image.Mutate(x => x.BackgroundColor(Color.White, new Rectangle((int)fontRectangle.X, (int)fontRectangle.Y, (int)imageToProcess.Width, (int)fontRectangle.Height)));
                 image.Mutate(x => x.DrawText(textOptions, text, Color.Black));
-                image.Mutate(x => x.DrawImage(imageToProcess.Frames.CloneFrame(i), new Point(0, (int)fontRectangle.Height), 1f));
+                image.Mutate(x => x.DrawImage(imageToProcessFrame, new Point(0, (int)fontRectangle.Height), 1f));
 
                 var metadata = image.Frames.RootFrame.Metadata.GetGifMetadata();
-                metadata.FrameDelay = imageToProcessRootFrameMetadata.FrameDelay;
+                metadata.FrameDelay = imageToProcessFrame.Frames.RootFrame.Metadata.GetGifMetadata().FrameDelay;
 
                 outputImage.Frames.AddFrame(image.Frames.RootFrame);
             }
