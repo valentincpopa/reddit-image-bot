@@ -5,9 +5,8 @@ registries:
     url: https://api.nuget.org/v3/index.json
 updates:
   - package-ecosystem: nuget
-    directory: /
+    directory: /src
     schedule:
-      interval: weekly
-    allow:
-      - dependency-name: Npgsql.EntityFrameworkCore.PostgreSQL
+      interval: daily
+    open-pull-requests-limit: 5
     registries: '*'
