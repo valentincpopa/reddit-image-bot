@@ -55,11 +55,11 @@ namespace RedditImageBot.Models
         public bool Archived { get; set; }
         public bool IsSelf { get; set; }
         public bool IsVideo { get; set; }
-        public bool IsRedditMediaDomain { get; set; }
+        public string PostHint { get; set; }
 
         public bool IsRedditImage
         {
-            get => !this.IsSelf && this.IsRedditMediaDomain && !this.IsVideo;
+            get => this.PostHint == "image" && !this.IsVideo;
         }
     }
 
