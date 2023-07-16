@@ -43,6 +43,7 @@ namespace RedditImageBot.Processing.Pipelines
             var postValidatorFilter = new PostValidatorFilter(
                 scope.ServiceProvider.GetService<IDbContextFactory<ApplicationDbContext>>(),
                 scope.ServiceProvider.GetService<IRedditService>(),
+                scope.ServiceProvider.GetService<IMessageParserService>(),
                 scope.ServiceProvider.GetService<ILogger<PostValidatorFilter>>());
 
             var postProcessorFilter = new PostProcessorFilter(

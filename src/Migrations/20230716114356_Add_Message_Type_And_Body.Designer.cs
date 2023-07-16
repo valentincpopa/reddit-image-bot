@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RedditImageBot.Database;
@@ -11,9 +12,11 @@ using RedditImageBot.Database;
 namespace RedditImageBot.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230716114356_Add_Message_Type_And_Body")]
+    partial class Add_Message_Type_And_Body
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -84,6 +87,7 @@ namespace RedditImageBot.Migrations
                         .HasColumnType("TimestampTz");
 
                     b.Property<string>("ExternalId")
+                        .IsRequired()
                         .HasColumnType("varchar(16)");
 
                     b.Property<string>("GeneratedImageUrl")

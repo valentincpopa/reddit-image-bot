@@ -14,15 +14,18 @@ namespace RedditImageBot.Processing.Filters
         private readonly IDbContextFactory<ApplicationDbContext> _applicationDbContextFactory;
         private readonly IRedditService _redditService;
         private readonly ILogger<PostValidatorFilter> _logger;
+        private readonly IMessageParserService _messageParserService;
 
         private static readonly string _typeFullName = typeof(PostValidatorFilter).FullName;
 
         public PostValidatorFilter(
             IDbContextFactory<ApplicationDbContext> applicationDbContextFactory,
             IRedditService redditService,
+            IMessageParserService messageParserService,
             ILogger<PostValidatorFilter> logger)
         {
             _applicationDbContextFactory = applicationDbContextFactory;
+            _messageParserService = messageParserService;
             _redditService = redditService;
             _logger = logger;
         }
@@ -33,15 +36,21 @@ namespace RedditImageBot.Processing.Filters
 
             _logger.LogInformation("Started processing the message identified by the following external id: {ExternalMessageId}", metadata.MessageMetadata.ExternalMessageId);
 
+            var parsedBody = _messageParserService.Parse(metadata.MessageMetadata.Body);
+            if (parsedBody.IsValid)
+            {
+                metadata.MessageMetadata.ExternalPostId = parsedBody.ExternalPostId;
+            }
+
             var post = await _redditService.GetPostAsync(metadata.MessageMetadata.ExternalPostId);
-            if (!post.IsRedditImage)
+            if (!post?.IsImage ?? true)
             {
                 _logger.LogWarning("The requested post ({ExternalPostId}) does not represent an image or its source does not represent a reddit media domain.", metadata.MessageMetadata.ExternalPostId);
                 metadata.SetupMetadata(new PostMetadata(metadata.MessageMetadata.ExternalPostId, false));
                 return metadata;
             }
 
-            var postMetadata = new PostMetadata(metadata.MessageMetadata.ExternalPostId, post.Title, post.Url);
+            var postMetadata = new PostMetadata(metadata.MessageMetadata.ExternalPostId, parsedBody?.Title ?? post.Title, post.Url);
 
             using var applicationDbContext = await _applicationDbContextFactory.CreateDbContextAsync();
 

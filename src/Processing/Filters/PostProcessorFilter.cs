@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using RedditImageBot.Database;
 using RedditImageBot.Models;
-using RedditImageBot.Services;
 using RedditImageBot.Services.Abstractions;
 using RedditImageBot.Utilities.Common;
 using System.Linq;

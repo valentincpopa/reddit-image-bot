@@ -6,11 +6,6 @@ namespace RedditImageBot.Models
     {
         public PostMetadata(string externalId, bool isValidImage)
         {
-            if (string.IsNullOrWhiteSpace(externalId))
-            {
-                throw new ArgumentException($"'{nameof(externalId)}' cannot be null or whitespace.", nameof(externalId));
-            }
-
             ExternalPostId = externalId;
             IsValidImage = isValidImage;
         }

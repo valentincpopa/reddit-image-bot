@@ -42,6 +42,7 @@ namespace RedditImageBot.Processing.Filters
 
             var inboxMessages = await _redditService.GetUnreadMessagesAsync();
             var messagesExternalIds = inboxMessages.Select(x => x.Name);
+
             using var applicationDbContext = await _applicationDbContextFactory.CreateDbContextAsync();
             var databaseMessagesIds = await applicationDbContext.Messages
                 .Where(x => messagesExternalIds.Contains(x.ExternalId))

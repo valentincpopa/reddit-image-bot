@@ -29,7 +29,35 @@ namespace RedditImageBot.Models
         public string Context { get; set; }
         public string ParentId { get; set; }
         public string Type { get; set; }
+        public string Subject { get; set; }
+        public string Dest { get; set; }
+        public string Body { get; set; }
         public bool WasComment { get; set; }
+        
+        public MessageType InternalType
+        {
+            get
+            {
+                return IsUsernameMention ? MessageType.UsernameMention
+                    : MessageType.PrivateMessage;
+            }
+        }            
+
+        public bool IsUsernameMention
+        {
+            get
+            {
+                return WasComment && Type == "username_mention";
+            }
+        }
+
+        public bool IsPrivateMessage
+        {
+            get
+            {
+                return Type == "unknown" && Subject.Equals("parse", StringComparison.OrdinalIgnoreCase);
+            }
+        }
 
         public bool Equals([AllowNull] MessageThing other)
         {
@@ -57,7 +85,7 @@ namespace RedditImageBot.Models
         public bool IsVideo { get; set; }
         public string PostHint { get; set; }
 
-        public bool IsRedditImage
+        public bool IsImage
         {
             get => this.PostHint == "image" && !this.IsVideo;
         }

@@ -37,6 +37,7 @@ namespace RedditImageBot.Services
             services.AddScoped<IRedditService, RedditService>();
             services.AddScoped<IImgurService, ImgurService>();
             services.AddScoped<IImageService, ImageService>();
+            services.AddScoped<IMessageParserService, MessageParserService>();
 
             services.AddScoped<FramelessImageProcessor>();
             services.AddScoped<GifImageProcessor>();

@@ -10,8 +10,10 @@ namespace RedditImageBot.Database.Configurations
             builder.ToTable("messages");
             builder.HasKey(x => x.Id);
             builder.Property(x => x.ExternalId).HasColumnType("varchar(16)").IsRequired();
-            builder.Property(x => x.ExternalParentId).HasColumnType("varchar(16)").IsRequired();
+            builder.Property(x => x.ExternalParentId).HasColumnType("varchar(16)");
             builder.Property(x => x.Status).HasField("_status").HasColumnType("smallint").UsePropertyAccessMode(PropertyAccessMode.Property).IsRequired();
+            builder.Property(x => x.Type).HasColumnType("smallint").IsRequired();
+            builder.Property(x => x.Body).HasColumnType("varchar(2048)").IsRequired();
             builder.Property(x => x.CreatedAt).HasColumnType("TimestampTz").IsRequired();
             builder.Property(x => x.ModifiedAt).HasColumnType("TimestampTz").IsRequired();
             builder.Property(x => x.ProcessingCount).HasColumnType("smallint");

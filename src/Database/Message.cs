@@ -18,11 +18,15 @@ namespace RedditImageBot.Database
         public int Id { get; }
         public string ExternalId { get; private set; }
         public string ExternalParentId { get; private set; }
+        public string Body { get; private set; }
         public int? PostId { get; set; }
         public Post Post { get; }
         public DateTime CreatedAt { get; }
         public DateTime ModifiedAt { get; private set; }
         public int? ProcessingCount { get; set; }
+
+        public MessageType Type { get; private set; }
+
         public MessageState Status
         {
             get

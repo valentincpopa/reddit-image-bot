@@ -7,7 +7,6 @@ using RedditImageBot.Services.Abstractions;
 using RedditImageBot.Utilities.Common;
 using RedditImageBot.Utilities.Configurations;
 using RedditImageBot.Utilities.Exceptions;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -65,12 +64,7 @@ namespace RedditImageBot.Processing.Filters
                 $"*^(Please)* [*^(contact the creator of this bot)*](/message/compose/?to=/u/{_options.CreatorUsername}) *^(if)* *^(you)* *^(have)* *^(any)* *^(questions)* *^(or)* *^(concerns.)* " +
                 $"*^(You)* *^(can)* *^(find)* *^(the)* *^(source)* *^(code)* [*^(here)*]({_options.SourceCodeUrl})*^(.)*";
 
-            var repliesAuthors = await _redditService.GetCommentRepliesAuthorsAsync(metadata.PostMetadata.ExternalPostId, metadata.MessageMetadata.ExternalCommentId);
-
-            if (!repliesAuthors.Any(x => x == _options.BotUsername))
-            {
-                await _redditService.ReplyAsync(metadata.MessageMetadata.ExternalCommentId, responseMessage);
-            }
+            await _redditService.ReplyAsync(metadata.MessageMetadata.ExternalCommentId, responseMessage);
 
             await applicationDbContext.SaveChangesAsync();
 

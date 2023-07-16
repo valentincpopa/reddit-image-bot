@@ -17,7 +17,7 @@ namespace RedditImageBot.Services
         private readonly RedditWebAgent _redditWebAgent;
         private readonly ILogger<RedditService> _logger;
 
-        public RedditService(RedditWebAgent redditWebAgent, ILogger<RedditService> logger)
+        public RedditService(RedditWebAgent redditWebAgent, ILogger<RedditService> logger) 
         {
             _redditWebAgent = redditWebAgent;
             _logger = logger;
@@ -69,7 +69,7 @@ namespace RedditImageBot.Services
             var root = JsonConvert.DeserializeObject<Root<MessageThing>>(content);
 
             var messages = root.Data.Children.Select(x => x.Data);
-            return messages.Where(x => x.Type == "username_mention" && x.WasComment);
+            return messages.Where(x => x.IsUsernameMention || x.IsPrivateMessage);
         }
 
         public async Task<PostThing> GetPostAsync(string fullname)
