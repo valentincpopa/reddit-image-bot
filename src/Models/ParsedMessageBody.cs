@@ -8,7 +8,7 @@ namespace RedditImageBot.Models
 
         public ParsedMessageBody(string title, string url, string externalPostId)
         {
-            Title = title.Trim()[..500];
+            Title = title?.Trim()[0..Math.Min(title.Trim().Length, 500)];
             ExternalPostId = $"t3_{externalPostId}";
             Url = url;
         }
@@ -21,7 +21,7 @@ namespace RedditImageBot.Models
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(Title) || string.IsNullOrWhiteSpace(Url) || string.IsNullOrWhiteSpace(ExternalPostId))
+                if (string.IsNullOrWhiteSpace(Url) || string.IsNullOrWhiteSpace(ExternalPostId))
                 {
                     return false;
                 }

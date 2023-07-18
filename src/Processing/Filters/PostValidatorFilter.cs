@@ -50,16 +50,17 @@ namespace RedditImageBot.Processing.Filters
                 return metadata;
             }
 
-            var postMetadata = new PostMetadata(metadata.MessageMetadata.ExternalPostId, parsedBody?.Title ?? post.Title, post.Url);
+            var postMetadata = new PostMetadata(metadata.MessageMetadata.ExternalPostId, string.IsNullOrWhiteSpace(parsedBody?.Title) ? post.Title : parsedBody.Title, post.Url);
 
             using var applicationDbContext = await _applicationDbContextFactory.CreateDbContextAsync();
 
-            var processedPost = await applicationDbContext.Posts.FirstOrDefaultAsync(x => x.ExternalId == postMetadata.ExternalPostId);
-            if (processedPost != null)
-            {
-                postMetadata.GeneratedImageUrl = processedPost.GeneratedImageUrl;
-                postMetadata.InternalPostId = processedPost.Id;
-            }
+            // TODO:
+            //var processedPost = await applicationDbContext.Posts.FirstOrDefaultAsync(x => x.ExternalId == postMetadata.ExternalPostId);
+            //if (processedPost != null)
+            //{
+            //    postMetadata.GeneratedImageUrl = processedPost.GeneratedImageUrl;
+            //    postMetadata.InternalPostId = processedPost.Id;
+            //}
 
             metadata.SetupMetadata(postMetadata);
             return metadata;
