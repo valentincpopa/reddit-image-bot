@@ -68,6 +68,9 @@ namespace RedditImageBot.Processing.Filters
             {
                 message.ChangeState(MessageState.InProgress);
             }
+
+            MeterSources.MessageCounter.Add(unprocessedMessages.Count);
+
             await applicationDbContext.SaveChangesAsync();
 
             var metadataCollection = unprocessedMessages.Select(x => new Metadata(_mapper.Map<MessageMetadata>(x)));

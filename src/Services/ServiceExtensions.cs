@@ -84,6 +84,7 @@ namespace RedditImageBot.Services
                      metricsProviderBuilder
                         .ConfigureResource(resource => resource
                             .AddService(ActivitySources.RedditImageBot.Name))
+                            .AddMeter(MeterSources.Meter.Name)
                         .AddHttpClientInstrumentation()
                         .AddRuntimeInstrumentation()
                         .AddProcessInstrumentation()
