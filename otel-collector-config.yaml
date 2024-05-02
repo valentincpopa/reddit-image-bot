@@ -5,23 +5,23 @@ receivers:
 
 exporters:
   prometheus:
-    endpoint: "0.0.0.0:8889"
+    endpoint: "otel-collector:8889"
 
-  jaeger:
-    endpoint: jaeger-all-in-one:14250
+  otlp:
+    endpoint: jaeger-all-in-one:4317
     tls:
       insecure: true
 
 processors:
   batch:
-  
+
 service:
   extensions: []
   pipelines:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [jaeger]
+      exporters: [otlp]
     metrics:
       receivers: [otlp]
       processors: [batch]

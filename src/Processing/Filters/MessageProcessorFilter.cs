@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace RedditImageBot.Processing.Filters
 {
-    internal class MessageProcessorFilter
+    public class MessageProcessorFilter
     {
         private readonly IDbContextFactory<ApplicationDbContext> _applicationDbContextFactory;
         private readonly ILogger<MessageProcessorFilter> _logger;
