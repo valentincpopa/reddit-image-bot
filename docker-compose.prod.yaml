@@ -2,11 +2,6 @@ services:
 
 # Reddit bot
   reddit-image-bot:
-    container_name: reddit-image-bot
     image: ghcr.io/valentincpopa/reddit-image-bot:release-1.0.0
-    environment:
-      - DOTNET_ENVIRONMENT=Development
-    restart: always
-    depends_on:
-      postgres-server:
-        condition: service_healthy
+    volumes:
+      - ./appsettings.json:/app/appsettings.json

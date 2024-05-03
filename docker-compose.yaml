@@ -98,13 +98,9 @@ services:
   # Reddit bot
   reddit-image-bot:
     container_name: reddit-image-bot
-    image: valentincpopa/reddit-image-bot
     environment:
       - DOTNET_ENVIRONMENT=Development
     restart: always
-    build:
-      context: ./src
-      dockerfile: ./Dockerfile
     depends_on:
       postgres-server:
         condition: service_healthy

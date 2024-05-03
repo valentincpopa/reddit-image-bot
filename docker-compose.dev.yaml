@@ -1,0 +1,8 @@
+services:
+
+# Reddit bot
+  reddit-image-bot:
+    image: valentincpopa/reddit-image-bot
+    build:
+      context: ./src
+      dockerfile: ./Dockerfile
