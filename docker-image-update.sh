@@ -20,4 +20,4 @@ docker rm $container_id
 docker image rm $local_digest
 
 docker pull ghcr.io/valentincpopa/reddit-image-bot:release-1.0.0
-docker-compose -f docker-compose.yaml -f docker-compose.prod.yaml up --build --force-recreate --no-deps -d reddit-image-bot
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up --build --force-recreate --no-deps -d reddit-image-bot
